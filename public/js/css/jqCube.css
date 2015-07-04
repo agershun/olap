@@ -1,0 +1,324 @@
+
+.jqcube-drag-row-off  {
+    display: none;
+    background-color: #FFF0B0;    
+}
+.jqcube-drag-measure-off {
+    display: none; 
+    background-color: #FFF0B0;          
+}
+.jqcube-drag-col-off {
+    display: none;
+    background-color: #FFF0B0;           
+}
+
+.jqcube-drag-row-on {
+	background: #6CEA3D;
+    cursor: pointer;
+}
+.jqcube-drag-measure-on {
+	background: #6CEA3D;
+    cursor: pointer;
+}
+.jqcube-drag-col-on {
+	background: #6CEA3D;
+    cursor: pointer;
+}
+
+.jqcube-display-on {
+    display: inherit;   
+}
+
+[rel=disabled] {
+   opacity: 0.6; /* Real browsers */
+   filter: alpha(opacity = 60); /* MSIE */
+   font-style: italic;
+   color: #DDDDDD;  
+   		 
+}
+
+
+/* jqCube divs: */
+
+div.jqCubeMaster {    
+    width:100%;
+    height: 100%;
+}
+div.jqCubeRight {    
+    overflow: auto;
+    /* text-overflow:ellipsis; */
+}
+div.jqCubeLeft {     
+   float:left;   
+   margin-right: 10px;
+}
+
+/********************* Filter *****************************/
+div.jqcube-filterPane {
+	margin-bottom: 10px;
+    background-image: url(filter.png);
+    background-position-x: 5px;
+    background-position-y: center;
+    background-repeat:no-repeat;
+    padding: 3px 3px 1px 30px;
+    min-height: 20px;
+    background-color: #FFF0B0;
+}
+
+span.jqcube-filterMember {    
+    border: solid 1px #0099FF;
+    padding-left: 2px;
+    padding-right: 2px;    
+    cursor:pointer;
+}
+
+div.jqcube-filterHierarchy
+{
+    background-image: url(dimension.png);
+    background-repeat:no-repeat;
+    padding-left: 20px;
+    margin-right: auto;
+    cursor: pointer;
+    margin-bottom: 3px;
+}
+div.jqcube-filterMemberList { 
+    border:1px solid black; 
+    min-height: 200px; 
+    max-height: 600px; 
+    width:100%; 
+    overflow-y: auto; 
+}
+/********************* Filter *****************************/
+
+
+
+
+/********************* Toolbar *********************/
+div.jqcube-toolbar
+{
+    background-color: #0099FF;
+    margin-bottom: 3px;
+    vertical-align: middle;
+    padding: 3px;
+}
+div.jqcube-spinner
+{
+    width: 32px;
+    height: 32px;
+    background-image: url(spinner.gif);
+    background-repeat: no-repeat;  
+    float:right;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+div.jqcube-toolbar button
+{
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #fff;
+    width: 32px;
+    height: 32px;
+    margin-right: 3px;
+    border: none;
+    cursor: pointer;
+}
+button.jqcube-toggledimtree-button
+{
+    background-image: url(arrow-left32.png);
+}
+button.jqcube-toggledimtree-button-off
+{
+    background-image: url(arrow-right32.png);
+}
+button.jqcube-snd-button
+{
+    background-image: url(snd32.png);
+}
+button.jqcube-snd-button[disabled=disabled]
+{
+    background-image: url(snd32-g.png);
+}
+button.jqcube-orderby-button{
+    background-image: url(sort32.png);
+}
+button.jqcube-orderby-button[disabled=disabled]{
+    background-image: url(sort32-g.png);
+}
+button.jqcube-csv-button{
+    background-image: url(xlsx32.png);
+}
+button.jqcube-csv-button[disabled=disabled]{
+    background-image: url(xlsx32-g.png);
+}
+button.jqcube-savemdx-button{
+    background-image: url(save32.png);
+}
+button.jqcube-savemdx-button[disabled=disabled]{
+    background-image: url(save32-g.png);
+}
+.jqcube-garbageDiv
+{
+     background-image: url(bin1.png);
+     width: 128px;
+     height: 128px;
+     position: absolute;
+}
+
+.jqcube-gcan-hover {
+    background-image: url(bin2.png);
+    border: none;
+    background-color: transparent;
+}
+
+div.jqcube-dimTreeHeader
+{
+    text-align: left;
+    padding: 11px 5px 5px 5px;
+    background-color: #0099FF;
+    color: white;
+    font-weight: bold; 
+    height:22px;
+}
+
+.jstree-jqcube.jstree-focused {
+    background-color: white;
+    padding: 5px 0;
+}
+
+div.jqcube-statusBar {
+    margin: 8px 5px 5px 5px;
+    overflow: auto;
+    width: 300px;
+    float:right;
+    text-align: right;
+    font-weight: bold;
+    color: white;    
+}
+
+/* Slice and dice panel: **************************************************/
+div.jqcube-snd-measure, div.jqcube-snd-col, div.jqcube-snd-row
+{
+    max-width: 150px;
+    min-width: 50px;
+    min-height: 30px;
+    padding-left: 20px;
+    margin: 3px;
+    background:#eaeaea no-repeat;    
+    border: 1px solid black;
+    
+}
+div.jqcube-snd-measure
+{
+    background-image: url(measure.png);  
+    float: left;  
+}
+div.jqcube-snd-col, div.jqcube-snd-row
+{
+    background-image: url(dimension.png);
+}
+#jqcube-snd-sortablerows > div
+{
+   float: left;    
+}
+ 
+#jqcube-snd-sortablerows {  
+    height: 35px;   /* Must be set, otherwise horizonatl drop doesn't work. */
+}
+
+
+/**************************************************************************/
+
+/*  Result table look and feel: */
+table.jqcube-rtable {    
+    font-size : 12px;
+    background-color : white;    
+}
+
+th.jqcube-cheader {    
+    font-size : 12px;
+    background-color: #0099FF;
+    color: white;
+    padding: 4px 4px;
+    cursor: pointer;
+}
+
+.jqcube-rheader1, .jqcube-rheader0
+{
+    font-size : 10px;
+    background-color: #CCEBFF;
+    cursor: pointer;
+}
+
+
+td.jqcube-cellyellow0, td.jqcube-cellyellow1, td.jqcube-cellwhite0, td.jqcube-cellwhite1
+{
+    font-size : 10px;
+    text-align: right;
+}
+td.jqcube-cellwhite0, td.jqcube-cellwhite1  {    
+    background-color : white;
+}
+td.jqcube-cellyellow0, td.jqcube-cellyellow1 {
+    background-color : #FFF0B0;
+}
+
+
+
+
+/* Empty table look and feel: */
+table.jqcube-emptytable {
+    border: none;
+    background-color: #FFFFEE;
+}
+
+tr.jqcube-emptytr {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+span.jqcube-emptytable-caption
+{
+    display: inline-block;
+    padding-top: 15px;
+    height: 40px;
+    vertical-align: middle;
+    padding-left: 5px;
+    padding-right: 5px;    
+}
+
+/* Sort */
+span.jqcube-order-sortASC, span.jqcube-order-sortDESC, span.jqcube-order-sortBASC, span.jqcube-order-sortBDESC
+{
+    width: 16px; 
+    height: 16px;
+    margin-left: 3px;
+    display: inline-block;
+}
+span.jqcube-order-sortASC
+{
+    
+   background-image: url(sort1.png);
+}
+span.jqcube-order-sortDESC
+{
+    background-image: url(sort2.png);
+}
+span.jqcube-order-sortBASC
+{
+   background-image: url(sort3.png);
+}
+span.jqcube-order-sortBDESC
+{
+   background-image: url(sort4.png);
+}
+
+.drag-on {
+    background: #6CEA3D !important;
+}
+
+.jqcube-err
+{    
+    border: 2px solid red !important; 
+}
+/**************************************************************************/
