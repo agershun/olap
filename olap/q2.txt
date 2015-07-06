@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+ <SOAP-ENV:Body>
+  <Discover xmlns="urn:schemas-microsoft-com:xml-analysis" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+   <RequestType>DBSCHEMA_CATALOGS</RequestType>
+   <Restrictions>
+   </Restrictions>
+   <Properties>
+    <PropertyList>
+     <DataSourceInfo>Provider=Mondrian;DataSource=MondrianFoodMart;</DataSourceInfo>
+     <Format>Tabular</Format>
+    </PropertyList>
+   </Properties>
+  </Discover>
+ </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

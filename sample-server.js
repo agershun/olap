@@ -16,16 +16,30 @@ var app = express();
 
 // Middleware
 var bodyParser = require('body-parser');
-var urlencodedParser = bodyParser.urlencoded({ extended: false })
+var urlencodedParser = bodyParser.urlencoded({ extended: true });
+var jsonParser = bodyParser.json({ extended: false });
+var textParser = bodyParser.text();
+var rawParser = bodyParser.raw();
 
 app.use(express.static('public'));
 //app.use(bodyParser.json());
-//app.use(bodyParser.urlencoded());
+//app.use(bodyParser.urlencoded({extended:false}));
+
+//app.use(bodyParser.text({ type: 'text/xml' }))
 
 // XMLA entry point
-app.get('/xmla', function (req, res) {
-  console.log('XMLA:');
-  res.send(olap.xmla(req.body));
+app.post('/xmla', function (req, res) {
+    var data='';
+    req.setEncoding('utf8');
+    req.on('data', function(chunk) { 
+       data += chunk;
+    });
+
+    req.on('end', function() {
+	console.log(data);
+        req.body = data;
+		res.send(olap.xmla(req.body));
+    });
 });
 
 // Discover Metadata

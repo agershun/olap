@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+ <SOAP-ENV:Body>
+  <Discover xmlns="urn:schemas-microsoft-com:xml-analysis" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+   <RequestType>MDSCHEMA_CUBES</RequestType>
+   <Restrictions>
+    <RestrictionList>
+     <CATALOG_NAME>FoodMart</CATALOG_NAME>
+    </RestrictionList>
+   </Restrictions>
+   <Properties>
+    <PropertyList>
+     <DataSourceInfo>Provider=Mondrian;DataSource=MondrianFoodMart;</DataSourceInfo>
+     <Catalog>FoodMart</Catalog>
+     <Format>Tabular</Format>
+    </PropertyList>
+   </Properties>
+  </Discover>
+ </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
