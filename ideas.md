@@ -1,4 +1,4 @@
-# Olap.js Ideas
+# OLAP.js Ideas
 
 Installation:
 ```bash
@@ -26,13 +26,14 @@ Embed server into Express framework with standard path ('/xmla'):
 ```
 
 Embed server into Express framework with non-standard paths:
-```
+```js
 	app.get('/discover',function(req,res){
 		res.send(olap.discover());
 	});
-```js
+```
 
 or
+
 ```js
 	app.use(olap.express({xmla:'/xmla1'}));
 ```
@@ -49,8 +50,10 @@ Simple JSON interface:
 ```js
 	olap.discover(parms);
 	// returns array of cubes
+
 	olap.execute(mdx_statement,params);
 	// returns recordset object
+
 	olap.ToXML(recordset);
 	// returns XML object for XML/A answer
 ```
@@ -74,8 +77,7 @@ XML/A text in the body (for Execute query it includes MDX statement inside).
 
 4. ```olap.discovery()``` returns information about cudes, measures, etc.
 
-5. ```olap.execute() parses MDX statement to AST (abstract syntax tree).
-
+5. ```olap.execute()``` parses MDX statement to AST (abstract syntax tree).
 then it calls ```olap.query(mdx_ast)``` function.
 
 6. ```olap.query()``` translate MDX to the set of SQL statements and run them (this is the most intelligent part of the server). Some SQL queries can be cached in the memory,
@@ -91,14 +93,14 @@ We will use the similar parser from AlaSQL and AlaMDX.
 
 ### Data Sources
 
-We will use stadard connectors to Postgres, MySQL, SQLite, and MS SQL Server. We will also 
+We will use stadard connectors to Postgres, MySQL, SQLite, and MSSQL Server. We will also 
 use AlaSQL for fast tests and simple debugging.
 
 * Postgres - https://github.com/brianc/node-postgres
 * MySQL - https://github.com/felixge/node-mysql/
 * SQLite - https://github.com/mapbox/node-sqlite3
 
-### Olap Processor
+### OLAP Processor
 
 The most intelligent part of the system. 
 
@@ -108,7 +110,7 @@ columns queries).
 
 ### Cube Editor
 
-Olap.js will save data about cubes, dimensions and measures in JSON format and saves it
+OLAP.js will save data about cubes, dimensions and measures in JSON format and saves it
 to the disk. Later we will create visual editor (like SSAS and Mondrian do).
 
 
