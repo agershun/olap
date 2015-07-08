@@ -153,7 +153,15 @@ XMLAClient.prototype.discover = function(requestType, restrictions, properties, 
   
   // Restrictions
   s += '<Restrictions>';
-  /** @todo Restriction */
+  s += '<RestrictionList>';
+
+  for(var rest in restrictions) {
+    s += '<'+rest+'>';
+    s += restrictions[rest];
+    s += '</'+rest+'>';    
+  };
+
+  s += '</RestrictionList>';
   s += '</Restrictions>';
 
   // Properties
@@ -233,18 +241,18 @@ XMLAClient.prototype.cubes = XMLAClient.prototype.mdschema_cubes = function(rest
 */
 var keywords = {
   discover_datasources: "DISCOVER_DATASOURCES",
-  properties: "DISCOVER_PROPERTIES",
-  rowsets: "DISCOVER_SCHEMA_ROWSETS",
+  discover_properties: "DISCOVER_PROPERTIES",
+  discover_schema_rowsets: "DISCOVER_SCHEMA_ROWSETS",
   enumerators: "DISCOVER_ENUMERATORS",
   jeywords: "DISCOVER_KEYWORDS",
   literals: "DISCOVER_LITERALS",
-  catalogs: "DBSCHEMA_CATALOGS",
+  dbschema_catalogs: "DBSCHEMA_CATALOGS",
   columns: "DBSCHEMA_COLUMNS",
   types: "DBSCHEMA_PROVIDER_TYPES",
   tables: "DBSCHEMA_TABLES",
   info: "DBSCHEMA_TABLES_INFO",
   actions: "MDSCHEMA_ACTIONS",
-  cubes: "MDSCHEMA_CUBES",
+  mdschema_cubes: "MDSCHEMA_CUBES",
   dimensions: "MDSCHEMA_DIMENSIONS",
   functions: "MDSCHEMA_FUNCTIONS",
   hierarchies: "MDSCHEMA_HIERARCHIES",
@@ -260,6 +268,10 @@ for(var k in keywords) {
   );
 };
 
+
+/**
+  Get the list of datasources from XMLA source
+*/
 XMLAClient.prototype.datasources = function(cb) {
   this.discover_datasources(function(data){
 //    console.log(data);
@@ -290,6 +302,119 @@ XMLAClient.prototype.datasources = function(cb) {
       }
     };
     cb(sources);    
+  });
+};
+
+
+XMLAClient.prototype.properties = function(cb){
+  this.discover_0roperties(function(data){
+    var properties = [];
+    var data1 = data.root.children;
+    for(var k = 0;k<data1.length;k++) {
+      if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+        || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+        var data2 = data1[k].children[0].children[0].children[0].children;
+    for(var i=1;i<data2.length;i++) {
+      var property = {};
+      var d = data2[i].children;
+      for(var j=0;j<d.length;j++) {
+        property[d[j].name] = d[j].content;
+      }
+      properties.push(property);
+    }
+      }
+    }
+    cb(properties);
+  });
+};
+
+
+XMLAClient.prototype.rowsets = function(cb){
+  this.discover_schema_rowsets(function(data){
+    var properties = [];
+    var data1 = data.root.children;
+    for(var k = 0;k<data1.length;k++) {
+      if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+        || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+        var data2 = data1[k].children[0].children[0].children[0].children;
+    for(var i=1;i<data2.length;i++) {
+      var property = {};
+      var d = data2[i].children;
+      for(var j=0;j<d.length;j++) {
+        property[d[j].name] = d[j].content;
+      }
+      properties.push(property);
+    }
+      }
+    }
+    cb(properties);
+  });
+};
+
+
+XMLAClient.prototype.catalogs = function(cb){
+  this.dbschema_catalogs(function(data){
+    var properties = [];
+    var data1 = data.root.children;
+    for(var k = 0;k<data1.length;k++) {
+      if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+        || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+        var data2 = data1[k].children[0].children[0].children[0].children;
+    for(var i=1;i<data2.length;i++) {
+      var property = {};
+      var d = data2[i].children;
+      for(var j=0;j<d.length;j++) {
+        property[d[j].name] = d[j].content;
+      }
+      properties.push(property);
+    }
+      }
+    }
+    cb(properties);
+  });
+};
+
+XMLAClient.prototype.cubes = function(cb){
+  this.mdschema_cubes(function(data){
+    var properties = [];
+    var data1 = data.root.children;
+    for(var k = 0;k<data1.length;k++) {
+      if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+        || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+        var data2 = data1[k].children[0].children[0].children[0].children;
+    for(var i=1;i<data2.length;i++) {
+      var property = {};
+      var d = data2[i].children;
+      for(var j=0;j<d.length;j++) {
+        property[d[j].name] = d[j].content;
+      }
+      properties.push(property);
+    }
+      }
+    }
+    cb(properties);
+  });
+};
+
+XMLAClient.prototype.properties = function(restrictions,properties,cb){
+  this.discover('DISCOVER_PROPERTIES',restrictions,function(data){
+    var properties = [];
+    var data1 = data.root.children;
+    for(var k = 0;k<data1.length;k++) {
+      if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+        || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+        var data2 = data1[k].children[0].children[0].children[0].children;
+    for(var i=1;i<data2.length;i++) {
+      var property = {};
+      var d = data2[i].children;
+      for(var j=0;j<d.length;j++) {
+        property[d[j].name] = d[j].content;
+      }
+      properties.push(property);
+    }
+      }
+    }
+    cb(properties);
   });
 };
 

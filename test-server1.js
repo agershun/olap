@@ -2,25 +2,51 @@
 // XML/A client
 var xmla = require('./olap/xmla.js');
 
-
 var cli1 = xmla.client('http://bi.syncfusion.com/olap/msmdpump.dll');
 
+/*
 cli1.datasources(function(data){
 	console.log(data);
 });
-
+*/
 
 var cli2 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
-
+/*
 cli2.datasources(function(data){
 	console.log(data);
 });
-
+*/
 var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
 
-cli3.datasources(function(data){
+// cli3.datasources(function(data){
+// 	console.log(data);
+// });
+
+cli1.properties({PropertyName:'Catalog'},{},function(data){
 	console.log(data);
 });
+
+
+
+// cli3.properties(function(data){
+//     var properties = [];
+//     var data1 = data.root.children;
+//     for(var k = 0;k<data1.length;k++) {
+//       if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+//         || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+//         var data2 = data1[k].children[0].children[0].children[0].children;
+// 		for(var i=0;i<data2.length;i++) {
+// 			var property = {};
+// 			var d = data2[i].children;
+// 			for(var j=0;j<d.length;j++) {
+// 				property[d[j].name] = d[j].content;
+// 			}
+// 			properties.push(property);
+// 		}
+//       }
+//     }
+//     console.log(properties);
+// });
 
 
 
