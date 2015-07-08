@@ -11,7 +11,6 @@ JavaScript Online Analytical Processing server and library for browser and Node.
 ```js
     var olap = require('olap');
     olap.xmla();
-    olap
     olap.execute(mdx);
 ```
 

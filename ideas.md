@@ -11,12 +11,14 @@ Run stand-alone server:
 ```
 
 Create stand-alone server in Node.js:
+
 ```js
 	var olap = require('olap');
 	olap.server({port:3000, xmla:'/xmla'});
 ```
 
 Embed server into Express framework with standard path ('/xmla'):
+
 ```js
 	var express = require('express');
 	var app = express();
