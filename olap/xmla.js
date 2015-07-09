@@ -451,6 +451,7 @@ function rsparse (data) {
           var row = {};
           var d = data2[i].children;
           for(var j=0;j<d.length;j++) {
+            if(!ixcolumns[d[j].name]) console.log(d[j].name);
             if(ixcolumns[d[j].name].maxOccurs) {
               if(!row[d[j].name]) row[d[j].name] = [];
               row[d[j].name].push(d[j].content);
@@ -465,7 +466,7 @@ function rsparse (data) {
     return {columns:columns,rows:rows};
 }
 
-XMLAClient.discoverDatasources = function(restrictions, properties, cb) {
-  this.discovery('DISCOVER_DATASOURCES',restrictions, properties, cb);
-}
+XMLAClient.prototype.discoverDatasources = function(restrictions, properties, cb) {
+  this.discover('DISCOVER_DATASOURCES',restrictions, properties, cb);
+};
 

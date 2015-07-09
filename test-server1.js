@@ -1,7 +1,11 @@
 
 // XML/A client
 var xmla = require('./olap/xmla.js');
+var olap = require('./olap/olap.js');
 
+var srv = olap.server({port:3000, passthru:'http://localhost:8080/mondrian-embedded/xmla'});
+
+var cli0 = xmla.client('http://localhost:3000/xmla');
 var cli1 = xmla.client('http://bi.syncfusion.com/olap/msmdpump.dll');
 var cli2 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
 var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
@@ -10,9 +14,14 @@ var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
 // 	console.log(rs);
 // });
 
-cli2.discoverDatasources(function(rs){
+// cli0.discoverDatasources(function(rs){
+// 	console.log(rs);
+// });
+
+cli0.discover('DISCOVER_PROPERTIES',function(rs){
 	console.log(rs);
 });
+
 
 /*
 cli1.datasources(function(data){
