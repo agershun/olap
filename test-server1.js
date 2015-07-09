@@ -3,6 +3,12 @@
 var xmla = require('./olap/xmla.js');
 
 var cli1 = xmla.client('http://bi.syncfusion.com/olap/msmdpump.dll');
+var cli2 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
+var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
+
+cli2.discover1('DISCOVER_DATASOURCES',{},{},function(rs){
+	console.log(rs);
+});
 
 /*
 cli1.datasources(function(data){
@@ -10,21 +16,22 @@ cli1.datasources(function(data){
 });
 */
 
-var cli2 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
 /*
 cli2.datasources(function(data){
 	console.log(data);
 });
 */
-var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
 
 // cli3.datasources(function(data){
 // 	console.log(data);
 // });
 
-cli1.properties({PropertyName:'Catalog'},{},function(data){
-	console.log(data);
-});
+//cli2.properties({PropertyName:'Catalog'},{},function(data){
+//	console.log(data);
+//});
+
+
+
 
 
 

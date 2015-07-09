@@ -122,7 +122,7 @@ var SOAPEnvelope = function(body) {
 
 /** XMLA functions */
 
-XMLAClient.prototype.discover = function(requestType, restrictions, properties, async, cb) {
+XMLAClient.prototype.discover1 = function(requestType, restrictions, properties, async, cb) {
   if(typeof restrictions === 'function') {
     cb = restrictions;
     restrictions = undefined;
@@ -182,6 +182,7 @@ XMLAClient.prototype.discover = function(requestType, restrictions, properties, 
 		//var res = unpack();
 		// call cb
     var res = xmlparse(data);
+    res = rsparse(res);
     //console.log();
 		if(cb) cb(res);		
 	});
@@ -417,4 +418,50 @@ XMLAClient.prototype.properties = function(restrictions,properties,cb){
     cb(properties);
   });
 };
+
+function rsparse (data) {
+    var columns = [], ixcolumns = {};
+    var rows = [];
+    var data1 = data.root.children;
+    for(var k = 0;k<data1.length;k++) {
+      if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+        || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+        var data2 = data1[k].children[0].children[0].children[0].children;
+        
+
+        for(var g=0;g<data2[0].children.length;g++){
+          if(data2[0].children[g].name == "xsd:complexType" 
+            && data2[0].children[g].attributes.name == 'row'){
+
+            var data3 = data2[0].children[g].children[0].children;
+            for(var l=0;l<data3.length;l++) {
+              var column = {};
+              var data4 = data3[l].attributes;
+              for(var m in data4) {
+                column[m] = data4[m];
+              };
+              columns.push(column);
+              ixcolumns[column.name] = column;
+            }
+
+          }
+        };
+
+        for(var i=1;i<data2.length;i++) {
+          var row = {};
+          var d = data2[i].children;
+          for(var j=0;j<d.length;j++) {
+            if(ixcolumns[d[j].name].maxOccurs) {
+              if(!row[d[j].name]) row[d[j].name] = [];
+              row[d[j].name].push(d[j].content);
+            } else {
+              row[d[j].name] = d[j].content;
+            }
+          }
+          rows.push(row);
+        }
+      }
+    }
+    return {columns:columns,ixcolumns:ixcolumns,rows:rows};
+}
 
