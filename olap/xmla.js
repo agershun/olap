@@ -191,7 +191,10 @@ XMLAClient.prototype.discover = function(requestType, restrictions, properties, 
 };
 
 
-XMLAClient.prototype.execute = function(command, properties, cb) {
+
+
+
+XMLAClient.prototype.execute = function(command, properties, parameters, async, cb) {
 /*
 <Execute>
    <Command>...</Command>
@@ -200,13 +203,69 @@ XMLAClient.prototype.execute = function(command, properties, cb) {
 </Execute>
 */
 
+  if(typeof properties === 'function') {
+    cb = properties;
+    properties = undefined;
+    parameters = undefined;
+    async = true;
+  } else if(typeof parameters === 'function') {;
+    cb = parameters;
+    parameters = undefined;
+    async = true;
+  } else if(typeof async === 'function') {;
+    cb = async;
+    async = true;
+  };
 
-	// Pack
-	// Send http request
-	// unpack result
-	//var res = unpack();
-	// call cb
-	if(cb) cb(res);
+  var s = '<Execute xmlns="urn:schemas-microsoft-com:xml-analysis"';
+  s += ' SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
+  
+  // Request type
+  s += '<Command><Statement>'+command+'</Statement></Command>';
+  
+  // Properties
+  s += '<Properties>';
+  s += '<PropertyList>';
+
+  for(var prop in properties) {
+    s += '<'+prop+'>';
+    s += properties[prop];
+    s += '</'+prop+'>';    
+  }
+
+  s += '</PropertyList>';
+  s += ' </Properties>';
+
+
+  // Restrictions
+  s += '<Parameters>';
+
+  for(var param in parameters) {
+    s += '<Parameter>';
+    s += '<Name>';
+    s += param;
+    s += '</Name>';
+    s += '<Value>';
+    s += parameters[param];
+    s += '</Value>';
+    s += '</Parameter>';    
+  };
+
+  s += '</Parameters>';
+
+  s += '</Execute>';
+
+console.log(SOAPEnvelope(s));
+  POST(this.url, SOAPEnvelope(s), async, function(data){
+    //var res = unpack();
+    // call cb
+    var res = xmlparse(data);
+    res = rsparse(res);
+    //console.log();
+    if(cb) cb(res);   
+  });
+  // Send http request
+  // unpack result
 };
 
 /** Discover Aliases */
@@ -426,6 +485,10 @@ function rsparse (data) {
     for(var k = 0;k<data1.length;k++) {
       if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
         || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+        if(data1[k].children[0].name.toUpperCase() === "SOAP-ENV:FAULT"){
+          console.log(data1[k].children[0].children[3].children[0].children);
+          return;
+        };
         var data2 = data1[k].children[0].children[0].children[0].children;
         
 

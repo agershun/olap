@@ -89,7 +89,7 @@ var OLAPServer = function(params) {
   							}
 
   						}
-  					}
+  					} 
 
   					self.client.discover(requestType, restrictions, properties,
   						function(data) {
@@ -99,6 +99,35 @@ var OLAPServer = function(params) {
   					);
 
 
+  				} else if(data.name === 'Execute') {
+
+  						//TODO Execute
+  					var command, properties, parameters;
+  					for(var i=0;i<data.children.length;i++) {
+  						if(data.children[i].name === 'Command') {
+  							command = data.children[i].children[0].content;
+  						} else if(data.children[i].name === 'Properties') {
+  							if(data.children[i].children[0] && data.children[i].children[0].name === 'PropertyList') {
+	  							for(var k=0;k<data.children[i].children[0].children.length;k++) {
+	  								var d = data.children[i].children[0].children[k];
+	  								if(!properties) properties = {};
+	  								properties[d.name] = d.content;
+	  							}
+  							}
+  						} else if(data.children[i].name === 'Parameters') {
+  							for(var k=0;k<data.children[i].children.length;k++) {
+  								var d = data.children[i].children[k];
+  								if(!parameters) parameters = {};
+  								parameters[d.children[0].content] = d.children[1].content;
+  							}
+  						}
+  					};
+  					self.client.execute(command, properties, parameters,
+  						function(data) {
+						  	res.writeHead(200);
+						  	res.end(soapPack(data));
+  						}
+  					);
   				}
   				// Send answer
 	  		});
