@@ -122,7 +122,7 @@ var SOAPEnvelope = function(body) {
 
 /** XMLA functions */
 
-XMLAClient.prototype.discover1 = function(requestType, restrictions, properties, async, cb) {
+XMLAClient.prototype.discover = function(requestType, restrictions, properties, async, cb) {
   if(typeof restrictions === 'function') {
     cb = restrictions;
     restrictions = undefined;
@@ -462,6 +462,10 @@ function rsparse (data) {
         }
       }
     }
-    return {columns:columns,ixcolumns:ixcolumns,rows:rows};
+    return {columns:columns,rows:rows};
+}
+
+XMLAClient.discoverDatasources = function(restrictions, properties, cb) {
+  this.discovery('DISCOVER_DATASOURCES',restrictions, properties, cb);
 }
 

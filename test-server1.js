@@ -6,7 +6,11 @@ var cli1 = xmla.client('http://bi.syncfusion.com/olap/msmdpump.dll');
 var cli2 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
 var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
 
-cli2.discover1('DISCOVER_DATASOURCES',{},{},function(rs){
+// cli2.discover1('DISCOVER_DATASOURCES',{},{},function(rs){
+// 	console.log(rs);
+// });
+
+cli2.discoverDatasources(function(rs){
 	console.log(rs);
 });
 
