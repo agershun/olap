@@ -18,9 +18,9 @@ var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
 // 	console.log(rs);
 // });
 
-cli0.discover('DISCOVER_PROPERTIES',function(rs){
-	console.log(rs);
-});
+//cli0.discover('DISCOVER_PROPERTIES',function(rs){
+//	console.log(rs);
+//});
 
 
 /*

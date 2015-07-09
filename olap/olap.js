@@ -27,9 +27,44 @@ var OLAPServer = function(params) {
 	if(self.passthru) this.client = xmla.client(self.passthru);
 
 	http.createServer(function (req, res) {
-	  if(url.parse(req.url, true).path === self.path) {
+		console.log(req.method);
+//		CORS(req,res);
+
+	  	res.setHeader("Access-Control-Allow-Origin","*");
+	  	res.setHeader("Access-Control-Allow-Credentials",true);
+		res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, Access-Control-Allow-Origin, X-HTTP-Method-Override, Content-Type, Authorization, Accept");
+		res.setHeader("Access-Control-Allow-Methods", "HEAD, POST, GET, OPTIONS");
+		res.setHeader('Accept','*/*');
+
+		if(req.method == 'OPTIONS') {
+			res.setHeader('Content-Length',0);
+		  	res.writeHead(200);
+			res.end('');						
+		} else if(req.method == 'POST' && url.parse(req.url, true).path === self.path) {
+			res.setHeader("Content-Type", "text/xml");
 	  		textBody(req,function(err,body){
-  				var data = xmlparse(body).root.children[0].children[0];
+	  			if(err) {
+	  				console.log('Error in textBody',err);
+	  				res.end('');
+	  				return;
+	  			}
+
+				if(!body) {
+ 					console.log('Error body',body);
+				  	res.writeHead(200);
+  					res.end('');
+  					return;
+				}
+  				var data = xmlparse(body);
+//console.log(45,data.root);
+  				if(!data.root) {
+  					console.log('Bad XML body',body);
+				  	res.writeHead(200);
+  					res.end('');
+  					return;
+  				}
+
+  				data = data.root.children[0].children[0];
 //  				console.log(data);
   				if(data.name === 'Discover') {
   					var requestType, restrictions, properties;
@@ -58,7 +93,7 @@ var OLAPServer = function(params) {
 
   					self.client.discover(requestType, restrictions, properties,
   						function(data) {
-						  	res.writeHead(200, {'Content-Type': 'text/plain'});
+						  	res.writeHead(200);
 						  	res.end(soapPack(data));
   						}
   					);
@@ -82,11 +117,14 @@ function soapPack(rs){
 	var s = '';
 	s += '<?xml version="1.0"?>';
 	s += '<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" ';
-	s += 'SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"> <SOAP-ENV:Body>';
-	s += '<m:ExecuteResponse xmlns:m="urn:schemas-microsoft-com:xml-analysis">';
-	s += '<m:return SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
-	s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:mddataset">';
-	s += '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xars="urn:schemas-microsoft-com:xars">';
+	s += 'SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
+	s += '<SOAP-ENV:Header> ';
+	s += '</SOAP-ENV:Header>';
+	s += '<SOAP-ENV:Body>';
+	s += '<cxmla:DiscoverResponse xmlns:cxmla="urn:schemas-microsoft-com:xml-analysis">';
+	s += '<cxmla:return>';
+	s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:EX="urn:schemas-microsoft-com:xml-analysis:exception">';
+	s += '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sql="urn:schemas-microsoft-com:xml-sql" targetNamespace="urn:schemas-microsoft-com:xml-analysis:rowset" elementFormDefault="qualified">';
 
 	s += '<xsd:element name="root">';
 	s += 	'<xsd:complexType>'
@@ -109,14 +147,16 @@ function soapPack(rs){
 	// Add colums schema
 	for(var j=0;j<rs.columns.length;j++) {
 		s += '<xsd:element ';
+		var ss = [];
 		for(var k in rs.columns[j]) {
-			s += k+'="'+rs.columns[j][k]+'" ';
+			ss.push(k+'="'+rs.columns[j][k]+'"');
 		};
-		s += '/>';
+		s += ss.join(' ')+'/>';
 	};
 
 	s += '</xsd:sequence>';
 	s += '</xsd:complexType>';
+
 	s += '</xsd:schema>';
 	// Add rows
 	for(var i=0;i<rs.rows.length;i++) {
@@ -132,11 +172,36 @@ function soapPack(rs){
 	}
 
 	s += '</root>';
-	s += '</m:return>';
-	s += '</m:ExecuteResponse>';
+	s += '</cxmla:return>';
+	s += '</cxmla:DiscoverResponse>';
 	s += '</SOAP-ENV:Body>';
 	s += '</SOAP-ENV:Envelope>';
-	console.log(s);
+//	console.log(s);
 	return s;
 }
 
+function CORS(req, res) {
+    var oneof = false;
+    if(req.headers.origin) {
+        res.header('Access-Control-Allow-Origin', req.headers.origin);
+        oneof = true;
+    }
+    if(req.headers['access-control-request-method']) {
+        res.header('Access-Control-Allow-Methods', req.headers['access-control-request-method']);
+        oneof = true;
+    }
+    if(req.headers['access-control-request-headers']) {
+        res.header('Access-Control-Allow-Headers', req.headers['access-control-request-headers']);
+        oneof = true;
+    }
+    if(oneof) {
+        res.header('Access-Control-Max-Age', 60 * 60 * 24 * 365);
+    }
+
+    // intercept OPTIONS method
+    if (oneof && req.method == 'OPTIONS') {
+        res.send(200);
+    } else {
+//        next();
+    }
+};	
