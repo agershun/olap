@@ -35,8 +35,8 @@ if(typeof exports == 'object') {
 //     xhr.onreadystatechange = function() {
 //         if (xhr.readyState === XMLHttpRequest.DONE) {
 //             if (xhr.status === 200) {
-//                 if (success){
-//                     success(cutbom(xhr.responseText));
+//                 if (cb){
+//                     cb(cutbom(xhr.responseText));
 //                 }
 //             } else if (error){
 //                 error(xhr);
@@ -51,16 +51,16 @@ if(typeof exports == 'object') {
 /**
   @function POST-request
 */
-function POST(path,body,async,success,error){
+function POST(path,body,async,cb){
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
       if (xhr.readyState === XMLHttpRequest.DONE) {
           if (xhr.status === 200) {
-              if (success){
-                  success(xhr.responseText);
+              if (cb){
+                  cb(undefined,xhr.responseText);
               }
           } else if (error){
-              error(xhr);
+              cb(xhr);
           }
           // Todo: else...?            
       }
@@ -123,7 +123,15 @@ var SOAPEnvelope = function(body) {
 /** XMLA functions */
 
 XMLAClient.prototype.discover = function(requestType, restrictions, properties, async, cb) {
-  if(typeof restrictions === 'function') {
+  var url = this.url;
+  if(typeof requestType === 'object') {
+    url = requestType.url || this.url;
+    restrictions = requestType.restrictions;
+    properties = requestType.properties;
+    async = requestType.async;
+    cb = requestType.cb;
+    requestType = requestType.requestType;
+  } else if(typeof restrictions === 'function') {
     cb = restrictions;
     restrictions = undefined;
     properties = undefined;
@@ -136,6 +144,10 @@ XMLAClient.prototype.discover = function(requestType, restrictions, properties, 
     cb = async;
     async = true;
   };
+
+  if(this.properties) {
+    properties = extend(extend({},this.properties),properties);
+  }
 
 /*
 <Discover>
@@ -178,13 +190,21 @@ XMLAClient.prototype.discover = function(requestType, restrictions, properties, 
   s += ' </Properties>';
   s += '</Discover>';
 
-  POST(this.url, SOAPEnvelope(s), async, function(data){
+  POST(url, SOAPEnvelope(s), async, function(err,data){
+    if(err) {
+      cb(err);
+      return;
+    }
 		//var res = unpack();
 		// call cb
     var res = xmlparse(data);
-    res = rsparse(res);
+//    console.log(res);
+
+    res = rsparse(res,function(err,rs){
+      cb(err,rs);
+    });
     //console.log();
-		if(cb) cb(res);		
+//		cb(undefined,res);		
 	});
 	// Send http request
 	// unpack result
@@ -202,8 +222,14 @@ XMLAClient.prototype.execute = function(command, properties, parameters, async, 
    <Parameters>...</Parameters>
 </Execute>
 */
-
-  if(typeof properties === 'function') {
+  var url = this.url;
+  if(typeof command === 'object') {
+    url = command.url || this.url;
+    properties = command.properties;
+    async = command.async;
+    cb = command.cb;
+    command = command.command;
+  } else if(typeof properties === 'function') {
     cb = properties;
     properties = undefined;
     parameters = undefined;
@@ -216,6 +242,10 @@ XMLAClient.prototype.execute = function(command, properties, parameters, async, 
     cb = async;
     async = true;
   };
+
+  // if(this.properties) {
+  //   properties = extend(extend({},this.properties),properties);
+  // }
 
   var s = '<Execute xmlns="urn:schemas-microsoft-com:xml-analysis"';
   s += ' SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
@@ -255,14 +285,20 @@ XMLAClient.prototype.execute = function(command, properties, parameters, async, 
 
   s += '</Execute>';
 
-console.log(SOAPEnvelope(s));
-  POST(this.url, SOAPEnvelope(s), async, function(data){
+//console.log(SOAPEnvelope(s));
+  POST(url, SOAPEnvelope(s), async, function(err,data){
+    if(err) {
+      cb(err);
+      return;
+    }
     //var res = unpack();
     // call cb
     var res = xmlparse(data);
-    res = rsparse(res);
+    res = rsparse(res,function(err,rs){
+      cb(err,rs);
+    });
     //console.log();
-    if(cb) cb(res);   
+//    cb(undefined,res);   
   });
   // Send http request
   // unpack result
@@ -299,6 +335,8 @@ XMLAClient.prototype.cubes = XMLAClient.prototype.mdschema_cubes = function(rest
   this.discover('MDSCHEMA_CUBES', restrictions, properties, async, cb);
 };
 */
+
+/*
 var keywords = {
   discover_datasources: "DISCOVER_DATASOURCES",
   discover_properties: "DISCOVER_PROPERTIES",
@@ -332,6 +370,7 @@ for(var k in keywords) {
 /**
   Get the list of datasources from XMLA source
 */
+/*
 XMLAClient.prototype.datasources = function(cb) {
   this.discover_datasources(function(data){
 //    console.log(data);
@@ -477,8 +516,8 @@ XMLAClient.prototype.properties = function(restrictions,properties,cb){
     cb(properties);
   });
 };
-
-function rsparse (data) {
+*/
+function rsparse (data,cb) {
     var columns = [], ixcolumns = {};
     var rows = [];
     var data1 = data.root.children;
@@ -487,6 +526,7 @@ function rsparse (data) {
         || data1[k].name.toUpperCase() === 'SOAP:BODY') {
         if(data1[k].children[0].name.toUpperCase() === "SOAP-ENV:FAULT"){
           console.log(data1[k].children[0].children[3].children[0].children);
+          cb('Can\'t parse');
           return;
         };
         var data2 = data1[k].children[0].children[0].children[0].children;
@@ -525,11 +565,19 @@ function rsparse (data) {
           rows.push(row);
         }
       }
-    }
-    return {columns:columns,rows:rows};
+    };
+//    console.log(columns);
+    cb(undefined,{columns:columns,rows:rows});
 }
 
-XMLAClient.prototype.discoverDatasources = function(restrictions, properties, cb) {
+XMLAClient.prototype.discoverDataSources = function(restrictions, properties, cb) {
   this.discover('DISCOVER_DATASOURCES',restrictions, properties, cb);
 };
 
+XMLAClient.prototype.discoverProperties = function(restrictions, properties, cb) {
+  this.discover('DISCOVER_PROPERTIES',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverDBCatalogs = function(restrictions, properties, cb) {
+  this.discover('DBSCHEMA_CATALOGS',restrictions, properties, cb);
+};

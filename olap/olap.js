@@ -27,7 +27,7 @@ var OLAPServer = function(params) {
 	if(self.passthru) this.client = xmla.client(self.passthru);
 
 	http.createServer(function (req, res) {
-		console.log(req.method);
+		//console.log(req.method);
 //		CORS(req,res);
 
 	  	res.setHeader("Access-Control-Allow-Origin","*");
@@ -91,10 +91,14 @@ var OLAPServer = function(params) {
   						}
   					} 
 
-  					self.client.discover(requestType, restrictions, properties,
-  						function(data) {
+  					self.discover(requestType, restrictions, properties,
+  						function(err,data) {
 						  	res.writeHead(200);
-						  	res.end(soapPack(data));
+  							if(err) {
+  								res.end('');
+  							} else {
+							  	res.end(soapPack(data));
+  							}
   						}
   					);
 
@@ -122,10 +126,14 @@ var OLAPServer = function(params) {
   							}
   						}
   					};
-  					self.client.execute(command, properties, parameters,
-  						function(data) {
+  					self.execute(command, properties, parameters,
+  						function(err,data) {
 						  	res.writeHead(200);
-						  	res.end(soapPack(data));
+  							if(err) {
+  								res.end(''); // Add error
+  							} else {
+							  	res.end(soapPack(data));
+  							}
   						}
   					);
   				}
@@ -234,3 +242,132 @@ function CORS(req, res) {
 //        next();
     }
 };	
+
+
+OLAPServer.prototype.discover = function(requestType,restrictions,properties,cb){
+	if(this.passthru) {
+		this.client.discover(requestType,restrictions,properties,cb);
+	} else {
+		if(requestType === 'DISCOVER_DATASOURCES') this.discoverDataSources(restrictions,properties,cb);
+		else if(requestType === 'DISCOVER_PROPERTIES') this.discoverProperties(restrictions,properties,cb);
+		else if(requestType === 'DBSCHEMA_CATALOGS') this.discoverDBCatalogs(restrictions,properties,cb);
+	}
+};
+
+OLAPServer.prototype.execute = function(command,properties,parameters,cb){
+	var self = this;
+	if(this.passthru) {
+		this.client.execute(command,properties,parameters,cb);
+	} else {
+		this.MDXParse(command, function(err,ast){
+			if(err) {
+				cb(err);
+				return;
+			}
+			self.MDXExecute(ast,properties,parameters,cb);
+		});
+
+	}
+};
+
+OLAPServer.prototype.MDXParse = function(command,cb) {
+	// Here we will have a parser
+	cb(undefined,{});
+};
+
+OLAPServer.prototype.MDXExecute = function(ast,properties,parameters,cb){
+	var columns =
+   [ { minOccurs: '0',
+       name: '_x005b_Measures_x005d_._x005b_qty_x005d_',
+       'sql:field': '[Measures].[qty]' } ];
+	var rows =  [ { '_x005b_Measures_x005d_._x005b_qty_x005d_': '48' } ];
+    cb(undefined,{columns:columns,rows:rows});	
+};
+
+
+OLAPServer.prototype.discoverDataSources = function(restrictions,properties,cb) {
+	var columns = 
+   [ { 'sql:field': 'DataSourceName',
+       name: 'DataSourceName',
+       type: 'xsd:string' },
+     { 'sql:field': 'DataSourceDescription',
+       name: 'DataSourceDescription',
+       type: 'xsd:string',
+       minOccurs: '0' },
+     { 'sql:field': 'URL',
+       name: 'URL',
+       type: 'xsd:string',
+       minOccurs: '0' },
+     { 'sql:field': 'DataSourceInfo',
+       name: 'DataSourceInfo',
+       type: 'xsd:string',
+       minOccurs: '0' },	
+     { 'sql:field': 'ProviderName',
+       name: 'ProviderName',
+       type: 'xsd:string',
+       minOccurs: '0' },
+     { 'sql:field': 'ProviderType',
+       name: 'ProviderType',
+       type: 'xsd:string',
+       maxOccurs: 'unbounded' },
+     { 'sql:field': 'AuthenticationMode',
+       name: 'AuthenticationMode',
+       type: 'xsd:string' } 
+   ];
+
+   var rows =    
+   [ { DataSourceName: 'Parmesano',
+       DataSourceDescription: 'Parmesano Data Warehouse',
+       URL: 'http://localhost:'+this.port+this.path,
+       DataSourceInfo: 'Provider=AlaOLAP;DataSource=Parmesano;',
+       ProviderName: 'AlaOLAP',
+       ProviderType: ["MDX"],
+       AuthenticationMode: 'Unauthenticated' } 
+    ];
+
+    cb(undefined,{columns:columns,rows:rows});
+};
+
+OLAPServer.prototype.discoverDBCatalogs = function(restrictions,properties,cb) {
+	var columns =  [ 
+	 { 'sql:field': 'CATALOG_NAME',
+       name: 'CATALOG_NAME',
+       type: 'xsd:string' },
+     { 'sql:field': 'DESCRIPTION',
+       name: 'DESCRIPTION',
+       type: 'xsd:string' },
+     { 'sql:field': 'ROLES', name: 'ROLES', type: 'xsd:string' },
+     { 'sql:field': 'DATE_MODIFIED',
+       name: 'DATE_MODIFIED',
+       type: 'xsd:dateTime',
+       minOccurs: '0' } ];
+   	
+   	var rows = [ 
+   		{ CATALOG_NAME: 'Parmesano',
+       DESCRIPTION: 'Parmesano Catalog' } 
+     ];
+    cb(undefined,{columns:columns,rows:rows});
+};
+
+OLAPServer.prototype.discoverProperties = function(restrictions,properties,cb) {
+	var columns = 
+  [ { 'sql:field': 'PropertyName',
+       name: 'PropertyName',
+       type: 'xsd:string' },
+     { 'sql:field': 'PropertyDescription',
+       name: 'PropertyDescription',
+       type: 'xsd:string' },
+     { 'sql:field': 'PropertyType',
+       name: 'PropertyType',
+       type: 'xsd:string' },
+     { 'sql:field': 'PropertyAccessType',
+       name: 'PropertyAccessType',
+       type: 'xsd:string' },
+     { 'sql:field': 'IsRequired',
+       name: 'IsRequired',
+       type: 'xsd:boolean' },
+     { 'sql:field': 'Value', name: 'Value', type: 'xsd:string' } ]
+	;
+   	var rows = [];
+    cb(undefined,{columns:columns,rows:rows});
+};

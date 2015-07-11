@@ -3,27 +3,23 @@
 var xmla = require('./olap/xmla.js');
 var olap = require('./olap/olap.js');
 
-var srv = olap.server({port:3000, passthru:'http://localhost:8080/mondrian-embedded/xmla'});
+var srv1 = olap.server({port:3000});
+var srv2 = olap.server({port:4000, passthru:'http://localhost:8080/mondrian-embedded/xmla'});
 
- var cli0 = xmla.client('http://localhost:3000/xmla');
- // cli0.properties = {Catalog:"FoodMart"};
-// var cli1 = xmla.client('http://bi.syncfusion.com/olap/msmdpump.dll');
-// var cli2 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
+var cli1 = xmla.client('http://localhost:3000/xmla');
+var cli2 = xmla.client('http://localhost:4000/xmla');
 
-//var cli3 = xmla.client('http://localhost:8080/mondrian-embedded/xmla');
 
-cli0.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty ',
-	{Catalog:"FoodMart"},
-	function(err,rs){
-		if(err) {
-			throw err;
-			return;
-		} 
-		console.log(rs.rows[0][rs.columns[0].name]);
-	}
-);
+cli2.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty',{Catalog:'FoodMart'},function(err,rs){
+	console.log(rs);
+});
 
-// cli2.discover1('DISCOVER_DATASOURCES',{},{},function(rs){
+cli1.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty',{Catalog:'Parmesano'},function(err,rs){
+	console.log(rs);
+});
+
+
+// cli1.discoverDataSources(function(err,rs){
 // 	console.log(rs);
 // });
 
