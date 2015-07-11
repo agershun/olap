@@ -14,9 +14,9 @@ cli2.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty',{Catalog:'FoodM
 	console.log(rs);
 });
 
-cli1.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty',{Catalog:'Parmesano'},function(err,rs){
-	console.log(rs);
-});
+// cli1.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty',{Catalog:'Parmesano'},function(err,rs){
+// 	console.log(rs);
+// });
 
 
 // cli1.discoverDataSources(function(err,rs){

@@ -62,11 +62,16 @@ var OLAPServer = function(params) {
 				  	res.writeHead(200);
   					res.end('');
   					return;
-  				}
+  				};
+  				// console.log(data.root);
+  				// console.log(x(data.root,"Body/Discover"));
 
-  				data = data.root.children[0].children[0];
-//  				console.log(data);
-  				if(data.name === 'Discover') {
+  				// data = data.root.children[0].children[0];
+
+  
+  				if(x(data.root,"Body/Discover")) {
+	  				data = x(data.root,"Body/Discover");
+
   					var requestType, restrictions, properties;
   					for(var i=0;i<data.children.length;i++) {
   						if(data.children[i].name === 'RequestType') {
@@ -102,8 +107,8 @@ var OLAPServer = function(params) {
   						}
   					);
 
-
-  				} else if(data.name === 'Execute') {
+				} else if(x(data.root,"Body/Execute")) {
+	  				data = x(data.root,"Body/Execute");
 
   						//TODO Execute
   					var command, properties, parameters;
@@ -126,6 +131,7 @@ var OLAPServer = function(params) {
   							}
   						}
   					};
+  					console.log(command, properties, parameters);
   					self.execute(command, properties, parameters,
   						function(err,data) {
 						  	res.writeHead(200);
@@ -281,6 +287,8 @@ OLAPServer.prototype.MDXExecute = function(ast,properties,parameters,cb){
        name: '_x005b_Measures_x005d_._x005b_qty_x005d_',
        'sql:field': '[Measures].[qty]' } ];
 	var rows =  [ { '_x005b_Measures_x005d_._x005b_qty_x005d_': '48' } ];
+
+
     cb(undefined,{columns:columns,rows:rows});	
 };
 
@@ -371,3 +379,37 @@ OLAPServer.prototype.discoverProperties = function(restrictions,properties,cb) {
    	var rows = [];
     cb(undefined,{columns:columns,rows:rows});
 };
+
+/**
+	Explore XML element
+	@usage
+	    x(xml, path)
+	    x(data.root, "Envelope/Body/Discovery")
+*/
+function x(a,b){
+	var bb = b.split('/');
+	var an;
+	for(var k=0;k<bb.length;k++) {		
+		if(typeof a === 'undefined') return undefined;
+		if(typeof a.children === 'undefined') return undefined;
+		var found = false;
+		for(var i=0;i<a.children.length;i++) {
+			if(typeof a.children[i] === 'undefined') continue;
+			var name = a.children[i].name; 
+			if(name.split(':').length > 1) name = name.split(':')[1];
+			if(typeof name === 'undefined') continue;
+			if(bb[k] === name) {
+				found = true;
+				an = a.children[i];
+				break;
+			};
+		}
+		if(!found) {
+			return undefined;
+		} else if(k<bb.length) {
+			a = an;
+		}
+	}
+	return a;
+};
+
