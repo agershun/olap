@@ -169,8 +169,8 @@ function soapPack(rs,responseType){
 	s += '<SOAP-ENV:Body>';
 	s += '<cxmla:'+responseType+' xmlns:cxmla="urn:schemas-microsoft-com:xml-analysis">';
 	s += '<cxmla:return>';
-	s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:EX="urn:schemas-microsoft-com:xml-analysis:exception">';
 	if(rs.columns) {
+    s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:EX="urn:schemas-microsoft-com:xml-analysis:exception">';
 		s += '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sql="urn:schemas-microsoft-com:xml-sql" targetNamespace="urn:schemas-microsoft-com:xml-analysis:rowset" elementFormDefault="qualified">';
 
 		s += '<xsd:element name="root">';
@@ -216,9 +216,13 @@ function soapPack(rs,responseType){
 				}
 			};
 			s += '</row>';
+      s += '</root>';
+
 		}
 
 	} else if (rs.cells) {
+    s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:mddataset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:EX="urn:schemas-microsoft-com:xml-analysis:exception">';
+
 		s += fs.readFileSync('olap/md.xml').toString();
 
 		s += '<OlapInfo>';
@@ -226,7 +230,8 @@ function soapPack(rs,responseType){
 		s += '<AxesInfo>';
 		rs.axis.forEach(function(axe){
 			s += '<AxisInfo name="'+axe.name+'">';
-			if(axe.hierarchy == 'Measures') {
+//			if(axe.hierarchy == 'Measures') {
+            if(axe.name == 'Axis0') {
 				s += '<HierarchyInfo name="Measures">';
 	              s += '<UName name="[Measures].[MEMBER_UNIQUE_NAME]"/>';
 	              s += '<Caption name="[Measures].[MEMBER_CAPTION]"/>';
@@ -234,7 +239,7 @@ function soapPack(rs,responseType){
 	              s += '<LNum name="[Measures].[LEVEL_NUMBER]"/>';
 	              s += '<DisplayInfo name="[Measures].[DISPLAY_INFO]"/>';
 	            s += '</HierarchyInfo>';
-			};
+    		};
 			s += '</AxisInfo>';
 		});
 		s += '</AxesInfo>';
@@ -251,7 +256,7 @@ function soapPack(rs,responseType){
         	s += '<Axis name="'+axe.name+'">';
     		s += '<Tuples>';
             s += '<Tuple>';
-        	if(axe.hierarchy) {
+          	if(axe.name == 'Axis0') {
 	           s += '<Member Hierarchy="Measures">';
 	           s += '<UName>[Measures].[qty]</UName>';
 	           s += '<Caption>qty</Caption>';
@@ -275,9 +280,9 @@ function soapPack(rs,responseType){
         	s += '</Cell>';
         });
       	s += '</CellData>';
+      s += '</root>';
 	};
 
-	s += '</root>';
 	s += '</cxmla:return>';
 	s += '</cxmla:'+responseType+'>';
 	s += '</SOAP-ENV:Body>';
@@ -353,9 +358,9 @@ OLAPServer.prototype.MDXParse = function(command,cb) {
 };
 
 OLAPServer.prototype.MDXExecute = function(ast,properties,parameters,cb){
-	if(properties.Format == 'Multidimensional') {
+	if(properties.Format === 'Multidimensional') {
 		var cube = 'ParmesanoCube';
-		var axis = [{name:'Axis(0)'},{name:'SlicerAxis'}];
+		var axis = [{name:'Axis0'},{name:'SlicerAxis'}];
 		var cells = [{Value:'48',FmtValue:'48'}];
 		cb(undefined,{cube:cube,axis:axis,cells:cells});
 	} else {
@@ -632,7 +637,7 @@ OLAPServer.prototype.discoverMDCubes = function(restrictions,properties,cb) {
        IS_LINKABLE: 'true',
        IS_WRITE_ENABLED: 'false',
        IS_SQL_ENABLED: 'true',
-       CUBE_CAPTION: 'Parmesano',
+       CUBE_CAPTION: 'Parmesano Cube',
        CUBE_SOURCE: '1' }
     ];
 
@@ -1039,9 +1044,10 @@ OLAPServer.prototype.discoverMDHierarchies = function(restrictions,properties,cb
     type: 'xsd:unsignedShort',
     minOccurs: '0' } ] ;
 
+/*
   var rows = [{ CATALOG_NAME: 'ParmesanoCatalog',
   CUBE_NAME: 'ParmesanoCube',
-  DIMENSION_UNIQUE_NAME: '[dept]',
+  DIMENSION_UNIQUE_NAME: 'dept',
   HIERARCHY_NAME: 'Address',
   HIERARCHY_UNIQUE_NAME: '[dept].[Address]',
   HIERARCHY_CAPTION: 'Address',
@@ -1062,6 +1068,33 @@ OLAPServer.prototype.discoverMDHierarchies = function(restrictions,properties,cb
   HIERARCHY_DISPLAY_FOLDER: 'Location',
   INSTANCE_SELECTION: '4',
   GROUPING_BEHAVIOR: '2' }];
+*/
+  var rows = [{
+        CATALOG_NAME:'ParmesanoCatalog',
+        SCHEMA_NAME:'New Schema1',
+        CUBE_NAME:'ParmesanoCube',
+        DIMENSION_UNIQUE_NAME:'[Measures]',
+        HIERARCHY_NAME:'Measures',
+        HIERARCHY_UNIQUE_NAME:'[Measures]',
+        HIERARCHY_CAPTION:'Measures',
+        DIMENSION_TYPE:'2',
+        HIERARCHY_CARDINALITY:'3',
+        DEFAULT_MEMBER:'[Measures].[qty]',
+        DESCRIPTION:'deptqty Cube - Measures Hierarchy',
+        STRUCTURE:'0',
+        IS_VIRTUAL:'false',
+        IS_READWRITE:'false',
+        DIMENSION_UNIQUE_SETTINGS:'0',
+        DIMENSION_IS_VISIBLE:'true',
+        HIERARCHY_IS_VISIBLE:'true',
+        HIERARCHY_ORDINAL:'0',
+        DIMENSION_IS_SHARED:'true',
+        PARENT_CHILD:'false'
+
+  }];
+
+
+
 
     cb(undefined,{columns:columns,rows:rows});
 };
@@ -1166,6 +1199,7 @@ var columns = [ { 'sql:field': 'CATALOG_NAME',
     name: 'LEVEL_ORIGIN',
     type: 'xsd:unsignedShort',
     minOccurs: '0' } ]
+
 var rows = [ { CATALOG_NAME: 'Parmesano',
   CUBE_NAME: 'Parmesano',
   DIMENSION_UNIQUE_NAME: '[Customer]',
@@ -1184,6 +1218,8 @@ var rows = [ { CATALOG_NAME: 'Parmesano',
   LEVEL_DBTYPE: '3',
   LEVEL_KEY_CARDINALITY: '1',
   LEVEL_ORIGIN: '2' } ];
+  
+  var rows = [];
 
       cb(undefined,{columns:columns,rows:rows});
 };
@@ -1243,6 +1279,9 @@ var rows = [ { CATALOG_NAME: 'ParmesanoCatalog',
   DIMENSION_IS_VISIBLE: 'true',
   DIMENSION_IS_FACT_DIMENSION: 'false',
   DIMENSION_GRANULARITY: '[dept].[Node Unique Name]' } ];
+
+  var rows = [];
+
     cb(undefined,{columns:columns,rows:rows});
 };
 
