@@ -5,17 +5,30 @@ var olap = require('./olap/olap.js');
 
 var srv1 = olap.server({port:3000});
 var srv2 = olap.server({port:4000, passthru:'http://localhost:8080/mondrian-embedded/xmla'});
-var srv2 = olap.server({port:5000, passthru:'http://sampledata.infragistics.com/olap/msmdpump.dll'});
+var srv3 = olap.server({port:5000, passthru:'http://sampledata.infragistics.com/olap/msmdpump.dll'});
 
 var cli1 = xmla.client('http://localhost:3000/xmla');
 var cli2 = xmla.client('http://localhost:4000/xmla');
 var cli3 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
 
+
+// cli2.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty',
+// 	{Catalog:'FoodMart',Format:'Multidimensional'},function(err,rs){
+// 	console.log(rs);
+// });
+
+
+
 //cli3.discoverDBCatalogs();
 
 
-cli3.discoverDBCatalogs(function(err,rs){ console.log('var columns =',rs.columns);
-	console.log('var rows = [', rs.rows[0],'];'); });
+//cli3.discoverDBCatalogs(function(err,rs){ console.log('var columns =',rs.columns);
+//	console.log('var rows = [', rs.rows[0],'];'); });
+
+// srv2.execute('SELECT [qty] FROM Foodmart',{Format:'Multidimensional'},function(err,data){
+// 	console.log(data);
+// });
+
 
 /*
 

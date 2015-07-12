@@ -28,6 +28,8 @@ if(typeof exports == 'object') {
 	//var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 	var XMLHttpRequest = require("xhr2").XMLHttpRequest;
   var xmlparse = require('./xmlparse.js').xmlparse;
+  var x = require('./x.js').x;
+
 };
 
 // function GET(path,cb){
@@ -90,6 +92,10 @@ function extend(dest, src) {
 
 var XMLAClient = function(params) {
 	// Set parameters
+  this.Format = 'Tabular'; // Default format
+
+//  this.properties = {Format:'Tabular'};
+
 	if(typeof params == 'string') {
 		this.url = params;
 	} else if(typeof params == 'object') {
@@ -145,9 +151,11 @@ XMLAClient.prototype.discover = function(requestType, restrictions, properties, 
     async = true;
   };
 
-  if(this.properties) {
-    properties = extend(extend({},this.properties),properties);
-  }
+  // if(this.properties) {
+  //   properties = extend(extend({},this.properties),properties);
+  // };
+  if(typeof properties === 'undefined') properties = {};
+  if(!properties.Format) properties.Format = this.Format;
 
 /*
 <Discover>
@@ -198,7 +206,6 @@ XMLAClient.prototype.discover = function(requestType, restrictions, properties, 
 		//var res = unpack();
 		// call cb
     var res = xmlparse(data);
-//    console.log(res);
 
     res = rsparse(res,function(err,rs){
       cb(err,rs);
@@ -226,6 +233,7 @@ XMLAClient.prototype.execute = function(command, properties, parameters, async, 
   if(typeof command === 'object') {
     url = command.url || this.url;
     properties = command.properties;
+    parameters = command.parameters;
     async = command.async;
     cb = command.cb;
     command = command.command;
@@ -247,6 +255,9 @@ XMLAClient.prototype.execute = function(command, properties, parameters, async, 
   //   properties = extend(extend({},this.properties),properties);
   // }
 
+  if(typeof properties === 'undefined') properties = {};
+  if(!properties.Format) properties.Format = this.Format;
+//console.log(260,properties);
   var s = '<Execute xmlns="urn:schemas-microsoft-com:xml-analysis"';
   s += ' SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">';
   
@@ -293,7 +304,10 @@ XMLAClient.prototype.execute = function(command, properties, parameters, async, 
     }
     //var res = unpack();
     // call cb
+//    console.log(data);
+
     var res = xmlparse(data);
+//    console.log(res.root.children);
     res = rsparse(res,function(err,rs){
       cb(err,rs);
     });
@@ -518,60 +532,127 @@ XMLAClient.prototype.properties = function(restrictions,properties,cb){
 };
 */
 function rsparse (data,cb) {
-    var columns = [], ixcolumns = {};
-    var rows = [];
-    var data1 = data.root.children;
-    for(var k = 0;k<data1.length;k++) {
-      if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
-        || data1[k].name.toUpperCase() === 'SOAP:BODY') {
-        if(data1[k].children[0].name.toUpperCase() === "SOAP-ENV:FAULT"){
-          console.log(data1[k].children[0].children[3].children[0].children);
-          cb('Can\'t parse');
-          return;
+
+    if(x(data.root,'Body/Fault')) {
+
+        console.log(x(data.root,'Body/Fault/faultstring').content);
+
+//console.log(x(data.root,'Body/Fault/detail/error/desc').content);
+        if(x(data.root,'Body/Fault/detail/error/desc')) {
+          console.log(x(data.root,'Body/Fault/detail/error/desc').content);
         };
-        var data2 = data1[k].children[0].children[0].children[0].children;
-//        console.log(532,data2);
-        
-
-        for(var g=0;g<data2[0].children.length;g++){
-          if(data2[0].children[g].name == "xsd:complexType" 
-            && data2[0].children[g].attributes.name == 'row'){
-
-            var data3 = data2[0].children[g].children[0].children;
-            for(var l=0;l<data3.length;l++) {
-              var column = {};
-              var data4 = data3[l].attributes;
-              for(var m in data4) {
-                column[m] = data4[m];
-              };
-              columns.push(column);
-              ixcolumns[column.name] = column;
-            }
-
-          }
-        };
-
-        for(var i=1;i<data2.length;i++) {
-          var row = {};
-          var d = data2[i].children;
-          for(var j=0;j<d.length;j++) {
-            if(!ixcolumns[d[j].name]) {
-              console.log('no column',d[j].name);
-              continue;
-            }
-            if(ixcolumns[d[j].name].maxOccurs) {
-              if(!row[d[j].name]) row[d[j].name] = [];
-              row[d[j].name].push(d[j].content);
-            } else {
-              row[d[j].name] = d[j].content;
-            }
-          }
-          rows.push(row);
-        }
-      }
+        cb(x(data.root,'Body/Fault/faultstring').content);
+        return;
     };
-//    console.log(columns);
-    cb(undefined,{columns:columns,rows:rows});
+
+
+//console.log(x(data.root,"Body/ExecuteResponse/return/root/OlapInfo/AxesInfo"));
+    if(x(data.root,"Body/ExecuteResponse/return/root/OlapInfo")) {
+      //console.log(x(data.root,"Body/ExecuteResponse/return/root/OlapInfo"));
+      var cubeInfo = x(data.root,"Body/ExecuteResponse/return/root/OlapInfo/CubeInfo/Cube");
+      var cube = cubeInfo.name;
+
+      var axesInfo = x(data.root,"Body/ExecuteResponse/return/root/OlapInfo/AxesInfo");
+      var axis = [];
+      for(var i=0;i<axesInfo.children.length;i++) {
+//        console.log();
+        var ai = axesInfo.children[i];
+        var axe = {name:ai.attributes.name};
+        axis.push(axe);
+//        console.log('ai=',x(ai,"HierarchyInfo"));
+      }
+      
+/*
+      var cellInfo = x(data.root,"Body/ExecuteResponse/return/root/OlapInfo/CellInfo");
+      console.log(x(cellInfo,"Value"));
+      console.log(x(cellInfo,"FmtValue"));
+      console.log(x(cellInfo,"FormatString"));
+*/
+      var axs = x(data.root,"Body/ExecuteResponse/return/root/Axes");
+//      console.log(axs);
+      for(var i=0;i<axs.children.length;i++) {
+        var tuples = x(axs.children[i],"Tuples");
+        for(var j=0;j<tuples.children.length;j++) {
+//          console.log(tuples.children[j]);
+        }
+
+      };
+
+
+      var cellData = x(data.root,"Body/ExecuteResponse/return/root/CellData");
+      //console.log(cellData.children);
+      var cells = [];
+      for(var i=0;i<cellData.children.length;i++) {
+        var cell = {};
+        cell.Value =x(cellData.children[i],"Value").content; 
+        cell.FmtValue =x(cellData.children[i],"FmtValue").content; 
+        if(x(cellData.children[i],"FormatString")) {
+          cell.FormatString =x(cellData.children[i],"FormatString").content; 
+        };
+        cells.push(cell);
+      };
+
+//      console.log(cube, axis, cells);
+      cb(undefined,{cube:cube,axis:axis,cells:cells});
+    
+
+    } else {
+
+      var columns = [], ixcolumns = {};
+      var rows = [];
+      var data1 = data.root.children;
+      for(var k = 0;k<data1.length;k++) {
+        if(data1[k].name.toUpperCase() === 'SOAP-ENV:BODY' 
+          || data1[k].name.toUpperCase() === 'SOAP:BODY') {
+          if(data1[k].children[0].name.toUpperCase() === "SOAP-ENV:FAULT"){
+            console.log(data1[k].children[0].children[3].children[0].children);
+            cb('Can\'t parse');
+            return;
+          };
+
+          var data2 = data1[k].children[0].children[0].children[0].children;
+          
+
+          for(var g=0;g<data2[0].children.length;g++){
+            if(data2[0].children[g].name == "xsd:complexType" 
+              && data2[0].children[g].attributes.name == 'row'){
+
+              var data3 = data2[0].children[g].children[0].children;
+              for(var l=0;l<data3.length;l++) {
+                var column = {};
+                var data4 = data3[l].attributes;
+                for(var m in data4) {
+                  column[m] = data4[m];
+                };
+                columns.push(column);
+                ixcolumns[column.name] = column;
+              }
+
+            }
+          };
+
+          for(var i=1;i<data2.length;i++) {
+            var row = {};
+            var d = data2[i].children;
+            for(var j=0;j<d.length;j++) {
+              if(!ixcolumns[d[j].name]) {
+                console.log('no column',d[j].name);
+                continue;
+              }
+              if(ixcolumns[d[j].name].maxOccurs) {
+                if(!row[d[j].name]) row[d[j].name] = [];
+                row[d[j].name].push(d[j].content);
+              } else {
+                row[d[j].name] = d[j].content;
+              }
+            }
+            rows.push(row);
+          }
+        }
+      };
+  //    console.log(columns);
+      cb(undefined,{columns:columns,rows:rows});
+    };
 }
 
 XMLAClient.prototype.discoverDataSources = function(restrictions, properties, cb) {

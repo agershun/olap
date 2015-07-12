@@ -1,8 +1,10 @@
 ﻿var http = require('http');
 var xmla = require('./xmla.js');
+var x = require('./x.js').x;
 var url = require('url');
 var textBody = require('body');
 var xmlparse = require('./xmlparse.js').xmlparse;
+var fs = require('fs');
 
 function extend(dest, src) {
   for(var p in src) {
@@ -102,7 +104,7 @@ var OLAPServer = function(params) {
   							if(err) {
   								res.end('');
   							} else {
-							  	res.end(soapPack(data));
+							  	res.end(soapPack(data, 'DiscoverResponse'));
   							}
   						}
   					);
@@ -139,7 +141,7 @@ var OLAPServer = function(params) {
   							if(err) {
   								res.end(''); // Add error
   							} else {
-							  	res.end(soapPack(data));
+							  	res.end(soapPack(data, 'ExecuteResponse'));
   							}
   						}
   					);
@@ -157,7 +159,7 @@ exports.server = function(params) {
 	return new OLAPServer(params);
 };
 
-function soapPack(rs){
+function soapPack(rs,responseType){
 	var s = '';
 	s += '<?xml version="1.0"?>';
 	s += '<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" ';
@@ -165,59 +167,119 @@ function soapPack(rs){
 	s += '<SOAP-ENV:Header> ';
 	s += '</SOAP-ENV:Header>';
 	s += '<SOAP-ENV:Body>';
-	s += '<cxmla:DiscoverResponse xmlns:cxmla="urn:schemas-microsoft-com:xml-analysis">';
+	s += '<cxmla:'+responseType+' xmlns:cxmla="urn:schemas-microsoft-com:xml-analysis">';
 	s += '<cxmla:return>';
 	s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:EX="urn:schemas-microsoft-com:xml-analysis:exception">';
-	s += '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sql="urn:schemas-microsoft-com:xml-sql" targetNamespace="urn:schemas-microsoft-com:xml-analysis:rowset" elementFormDefault="qualified">';
+	if(rs.columns) {
+		s += '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:xml-analysis:rowset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sql="urn:schemas-microsoft-com:xml-sql" targetNamespace="urn:schemas-microsoft-com:xml-analysis:rowset" elementFormDefault="qualified">';
 
-	s += '<xsd:element name="root">';
-	s += 	'<xsd:complexType>'
-    s +=         '<xsd:sequence>'
-    s +=           '<xsd:element name="row" type="row" minOccurs="0" maxOccurs="unbounded"/>'
-    s +=         '</xsd:sequence>'
-    s +=    '</xsd:complexType>'
-    s += '</xsd:element>';
+		s += '<xsd:element name="root">';
+		s += 	'<xsd:complexType>'
+	    s +=         '<xsd:sequence>'
+	    s +=           '<xsd:element name="row" type="row" minOccurs="0" maxOccurs="unbounded"/>'
+	    s +=         '</xsd:sequence>'
+	    s +=    '</xsd:complexType>'
+	    s += '</xsd:element>';
 
-    s += '<xsd:simpleType name="uuid">';
-    s +=       '<xsd:restriction base="xsd:string">';
-    s +=         '<xsd:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"/>';
-    s +=       '</xsd:restriction>';
-    s += '</xsd:simpleType>';
+	    s += '<xsd:simpleType name="uuid">';
+	    s +=       '<xsd:restriction base="xsd:string">';
+	    s +=         '<xsd:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"/>';
+	    s +=       '</xsd:restriction>';
+	    s += '</xsd:simpleType>';
 
-	
-	s += '<xsd:complexType name="row">';
-	s += '<xsd:sequence>';
+		s += '<xsd:complexType name="row">';
+		s += '<xsd:sequence>';
 
-	// Add colums schema
-	for(var j=0;j<rs.columns.length;j++) {
-		s += '<xsd:element ';
-		var ss = [];
-		for(var k in rs.columns[j]) {
-			ss.push(k+'="'+rs.columns[j][k]+'"');
-		};
-		s += ss.join(' ')+'/>';
-	};
-
-	s += '</xsd:sequence>';
-	s += '</xsd:complexType>';
-
-	s += '</xsd:schema>';
-	// Add rows
-	for(var i=0;i<rs.rows.length;i++) {
-		s += '<row>';
+		// Add colums schema
 		for(var j=0;j<rs.columns.length;j++) {
-			if(typeof rs.rows[i][rs.columns[j].name] !== 'undefined') {
-				s += '<'+rs.columns[j].name +'>';
-				s += rs.rows[i][rs.columns[j].name];
-				s += '</'+rs.columns[j].name +'>';				
-			}
+			s += '<xsd:element ';
+			var ss = [];
+			for(var k in rs.columns[j]) {
+				ss.push(k+'="'+rs.columns[j][k]+'"');
+			};
+			s += ss.join(' ')+'/>';
 		};
-		s += '</row>';
-	}
+
+		s += '</xsd:sequence>';
+		s += '</xsd:complexType>';
+
+		s += '</xsd:schema>';
+
+		// Add rows
+		for(var i=0;i<rs.rows.length;i++) {
+			s += '<row>';
+			for(var j=0;j<rs.columns.length;j++) {
+				if(typeof rs.rows[i][rs.columns[j].name] !== 'undefined') {
+					s += '<'+rs.columns[j].name +'>';
+					s += rs.rows[i][rs.columns[j].name];
+					s += '</'+rs.columns[j].name +'>';				
+				}
+			};
+			s += '</row>';
+		}
+
+	} else if (rs.cells) {
+		s += fs.readFileSync('olap/md.xml').toString();
+
+		s += '<OlapInfo>';
+		s += '<CubeInfo><Cube><CubeName>'+rs.cube+'</CubeName></Cube></CubeInfo>';
+		s += '<AxesInfo>';
+		rs.axis.forEach(function(axe){
+			s += '<AxisInfo name="'+axe.name+'">';
+			if(axe.hierarchy == 'Measures') {
+				s += '<HierarchyInfo name="Measures">';
+	              s += '<UName name="[Measures].[MEMBER_UNIQUE_NAME]"/>';
+	              s += '<Caption name="[Measures].[MEMBER_CAPTION]"/>';
+	              s += '<LName name="[Measures].[LEVEL_UNIQUE_NAME]"/>';
+	              s += '<LNum name="[Measures].[LEVEL_NUMBER]"/>';
+	              s += '<DisplayInfo name="[Measures].[DISPLAY_INFO]"/>';
+	            s += '</HierarchyInfo>';
+			};
+			s += '</AxisInfo>';
+		});
+		s += '</AxesInfo>';
+
+		s += '<CellInfo>';
+        s += '<Value name="VALUE"/>';
+        s += '<FmtValue name="FORMATTED_VALUE"/>';
+        s += '<FormatString name="FORMAT_STRING"/>';
+        s += '</CellInfo>';
+        s += '</OlapInfo>';
+
+        s += '<Axes>';
+        rs.axis.forEach(function(axe){
+        	s += '<Axis name="'+axe.name+'">';
+    		s += '<Tuples>';
+            s += '<Tuple>';
+        	if(axe.hierarchy) {
+	           s += '<Member Hierarchy="Measures">';
+	           s += '<UName>[Measures].[qty]</UName>';
+	           s += '<Caption>qty</Caption>';
+	           s += '<LName>[Measures].[MeasuresLevel]</LName>';
+	           s += '<LNum>0</LNum>';
+	           s += '<DisplayInfo>0</DisplayInfo>';
+	           s += '</Member>';
+        	};
+            s += '</Tuple>';
+	        s += '</Tuples>';
+        	s += '</Axis>';
+        });
+        s += '</Axes>';
+
+        s += '<CellData>';
+        rs.cells.forEach(function(cell){
+        	s += '<Cell CellOrdinal="0">';
+          	s += '<Value xsi:type="xsd:double">'+cell.Value+'</Value>';
+          	s += '<FmtValue>'+cell.FmtValue+'</FmtValue>';
+          	s += '<FormatString>'+(cell.FormatString||'')+'</FormatString>';
+        	s += '</Cell>';
+        });
+      	s += '</CellData>';
+	};
 
 	s += '</root>';
 	s += '</cxmla:return>';
-	s += '</cxmla:DiscoverResponse>';
+	s += '</cxmla:'+responseType+'>';
 	s += '</SOAP-ENV:Body>';
 	s += '</SOAP-ENV:Envelope>';
 //	console.log(s);
@@ -291,13 +353,20 @@ OLAPServer.prototype.MDXParse = function(command,cb) {
 };
 
 OLAPServer.prototype.MDXExecute = function(ast,properties,parameters,cb){
-	var columns =
-   [ { minOccurs: '0',
-       name: '_x005b_Measures_x005d_._x005b_qty_x005d_',
-       'sql:field': '[Measures].[qty]' } ];
-	var rows =  [ { '_x005b_Measures_x005d_._x005b_qty_x005d_': '48' } ];
+	if(properties.Format == 'Multidimensional') {
+		var cube = 'ParmesanoCube';
+		var axis = [{name:'Axis(0)'},{name:'SlicerAxis'}];
+		var cells = [{Value:'48',FmtValue:'48'}];
+		cb(undefined,{cube:cube,axis:axis,cells:cells});
+	} else {
+		var columns =
+	   [ { minOccurs: '0',
+	       name: '_x005b_Measures_x005d_._x005b_qty_x005d_',
+	       'sql:field': '[Measures].[qty]' } ];
+		var rows =  [ { '_x005b_Measures_x005d_._x005b_qty_x005d_': '48' } ];
 
-    cb(undefined,{columns:columns,rows:rows});	
+	    cb(undefined,{columns:columns,rows:rows});	
+	};
 };
 
 
@@ -332,11 +401,11 @@ OLAPServer.prototype.discoverDataSources = function(restrictions,properties,cb) 
    ];
 
    var rows =    
-   [ { DataSourceName: 'Parmesano',
-       DataSourceDescription: 'Parmesano',
+   [ { DataSourceName: 'ParmesanoDS',
+       DataSourceDescription: 'Parmesano Data Source',
        URL: 'http://localhost:'+this.port+this.path,
-       DataSourceInfo: 'Parmesano',
-       ProviderName: 'AlaOLAP',
+       DataSourceInfo: 'Parmesano Data Source Info',
+       ProviderName: 'olap.js',
        ProviderType: ["MDX"],
        AuthenticationMode: 'Unauthenticated' } 
     ];
@@ -358,8 +427,8 @@ OLAPServer.prototype.discoverDBCatalogs = function(restrictions,properties,cb) {
        type: 'xsd:dateTime',
        minOccurs: '0' } ];
    	
-var rows = [ { CATALOG_NAME: 'Parmesano',
-  DESCRIPTION: 'A Unified Dimensional Model built on the Adventure Works data warehouse.',
+var rows = [ { CATALOG_NAME: 'ParmesanoCatalog',
+  DESCRIPTION: 'Parmesano demonstration model',
   ROLES: 'olap',
   DATE_MODIFIED: '2014-01-27T06:49:32' } ];
 
@@ -553,8 +622,8 @@ OLAPServer.prototype.discoverMDCubes = function(restrictions,properties,cb) {
        type: 'xsd:unsignedShort',
        minOccurs: '0' } ];
   var rows = 
-   [ { CATALOG_NAME: 'Parmesano',
-       CUBE_NAME: 'Parmesano',
+   [ { CATALOG_NAME: 'ParmesanoCatalog',
+       CUBE_NAME: 'ParmesanoCube',
        CUBE_TYPE: 'CUBE',
        LAST_SCHEMA_UPDATE: '2009-10-28T06:03:47',
        LAST_DATA_UPDATE: '2015-01-06T13:08:48',
@@ -657,8 +726,8 @@ OLAPServer.prototype.discoverMDMeasures = function(restrictions,properties,cb) {
        type: 'xsd:string',
        minOccurs: '0' } ];
   var rows =
-   [ { CATALOG_NAME: 'Parmesano',
-       CUBE_NAME: 'Parmesano',
+   [ { CATALOG_NAME: 'ParmesanoCatalog',
+       CUBE_NAME: 'ParmesanoCube',
        MEASURE_NAME: 'qty',
        MEASURE_UNIQUE_NAME: '[Measures].[qty]',
        MEASURE_CAPTION: 'Quantity',
@@ -755,8 +824,8 @@ OLAPServer.prototype.discoverMDKPIs = function(restrictions,properties,cb) {
        type: 'xsd:int',
        minOccurs: '0' } ];
   var rows = 
-   [ { CATALOG_NAME: 'Parmesano',
-       CUBE_NAME: 'Parmesano',
+   [ { CATALOG_NAME: 'ParmesanoCatalog',
+       CUBE_NAME: 'ParmesanoCube',
        MEASUREGROUP_NAME: 'Sales',
        KPI_NAME: 'Growth in Customer Base',
        KPI_CAPTION: 'Growth in Customer Base',
@@ -846,20 +915,20 @@ OLAPServer.prototype.discoverMDDimensions = function(restrictions,properties,cb)
        type: 'xsd:boolean',
        minOccurs: '0' } ];
 
-     var rows =    [ { CATALOG_NAME: 'Parmesano',
-       CUBE_NAME: 'Parmesano',
-       DIMENSION_NAME: 'Customer',
-       DIMENSION_UNIQUE_NAME: '[Customer]',
-       DIMENSION_CAPTION: 'Customer',
+     var rows =    [ { CATALOG_NAME: 'ParmesanoCatalog',
+       CUBE_NAME: 'ParmesanoCube',
+       DIMENSION_NAME: 'dept',
+       DIMENSION_UNIQUE_NAME: '[dept]',
+       DIMENSION_CAPTION: 'dept',
        DIMENSION_ORDINAL: '5',
        DIMENSION_TYPE: '7',
        DIMENSION_CARDINALITY: '18485',
-       DEFAULT_HIERARCHY: '[Customer].[Customer Geography]',
+       DEFAULT_HIERARCHY: '[dept].[All]',
        DESCRIPTION: undefined,
        IS_VIRTUAL: 'false',
        IS_READWRITE: 'false',
        DIMENSION_UNIQUE_SETTINGS: '1',
-       DIMENSION_MASTER_NAME: 'Customer',
+       DIMENSION_MASTER_NAME: 'dept',
        DIMENSION_IS_VISIBLE: 'true' }];
 
     cb(undefined,{columns:columns,rows:rows});
@@ -970,11 +1039,11 @@ OLAPServer.prototype.discoverMDHierarchies = function(restrictions,properties,cb
     type: 'xsd:unsignedShort',
     minOccurs: '0' } ] ;
 
-  var rows = [{ CATALOG_NAME: 'Parmesano',
-  CUBE_NAME: 'Parmesano',
-  DIMENSION_UNIQUE_NAME: '[Customer]',
+  var rows = [{ CATALOG_NAME: 'ParmesanoCatalog',
+  CUBE_NAME: 'ParmesanoCube',
+  DIMENSION_UNIQUE_NAME: '[dept]',
   HIERARCHY_NAME: 'Address',
-  HIERARCHY_UNIQUE_NAME: '[Customer].[Address]',
+  HIERARCHY_UNIQUE_NAME: '[dept].[Address]',
   HIERARCHY_CAPTION: 'Address',
   DIMENSION_TYPE: '7',
   HIERARCHY_CARDINALITY: '12799',
@@ -1165,15 +1234,15 @@ var columns = [ { 'sql:field': 'CATALOG_NAME',
     type: 'xsd:string',
     minOccurs: '0' } ];
 
-var rows = [ { CATALOG_NAME: 'Parmesano',
-  CUBE_NAME: '$Clustered Customers',
+var rows = [ { CATALOG_NAME: 'ParmesanoCatalog',
+  CUBE_NAME: 'ParmesanoCube',
   MEASUREGROUP_NAME: 'Clustered CustomersMG',
   MEASUREGROUP_CARDINALITY: 'ONE',
-  DIMENSION_UNIQUE_NAME: '[Clustered Customers]',
+  DIMENSION_UNIQUE_NAME: '[dept]',
   DIMENSION_CARDINALITY: 'MANY',
   DIMENSION_IS_VISIBLE: 'true',
   DIMENSION_IS_FACT_DIMENSION: 'false',
-  DIMENSION_GRANULARITY: '[Clustered Customers].[Node Unique Name]' } ];
+  DIMENSION_GRANULARITY: '[dept].[Node Unique Name]' } ];
     cb(undefined,{columns:columns,rows:rows});
 };
 
@@ -1208,44 +1277,14 @@ var columns = [ { 'sql:field': 'CATALOG_NAME',
     type: 'xsd:string',
     minOccurs: '0' } ];
 
-var rows = [ { CATALOG_NAME: 'Adventure Works DW Standard Edition',
-  CUBE_NAME: '$Clustered Customers',
-  MEASUREGROUP_NAME: 'Clustered CustomersMG',
+var rows = [ { CATALOG_NAME: 'ParmesanoCatalog',
+  CUBE_NAME: 'ParmesanoCube',
+  MEASUREGROUP_NAME: 'Sales',
   DESCRIPTION: undefined,
   IS_WRITE_ENABLED: 'false',
-  MEASUREGROUP_CAPTION: 'Clustered CustomersMG' } ];    cb(undefined,{columns:columns,rows:rows});
+  MEASUREGROUP_CAPTION: 'Sales' } ];    
+  cb(undefined,{columns:columns,rows:rows});
 };
 
-/**
-	Explore XML element
-	@usage
-	    x(xml, path)
-	    x(data.root, "Envelope/Body/Discovery")
-*/
-function x(a,b){
-	var bb = b.split('/');
-	var an;
-	for(var k=0;k<bb.length;k++) {		
-		if(typeof a === 'undefined') return undefined;
-		if(typeof a.children === 'undefined') return undefined;
-		var found = false;
-		for(var i=0;i<a.children.length;i++) {
-			if(typeof a.children[i] === 'undefined') continue;
-			var name = a.children[i].name; 
-			if(name.split(':').length > 1) name = name.split(':')[1];
-			if(typeof name === 'undefined') continue;
-			if(bb[k] === name) {
-				found = true;
-				an = a.children[i];
-				break;
-			};
-		}
-		if(!found) {
-			return undefined;
-		} else if(k<bb.length) {
-			a = an;
-		}
-	}
-	return a;
-};
+
 
