@@ -530,6 +530,7 @@ function rsparse (data,cb) {
           return;
         };
         var data2 = data1[k].children[0].children[0].children[0].children;
+//        console.log(532,data2);
         
 
         for(var g=0;g<data2[0].children.length;g++){
@@ -554,7 +555,10 @@ function rsparse (data,cb) {
           var row = {};
           var d = data2[i].children;
           for(var j=0;j<d.length;j++) {
-            if(!ixcolumns[d[j].name]) console.log(d[j].name);
+            if(!ixcolumns[d[j].name]) {
+              console.log('no column',d[j].name);
+              continue;
+            }
             if(ixcolumns[d[j].name].maxOccurs) {
               if(!row[d[j].name]) row[d[j].name] = [];
               row[d[j].name].push(d[j].content);
@@ -580,4 +584,37 @@ XMLAClient.prototype.discoverProperties = function(restrictions, properties, cb)
 
 XMLAClient.prototype.discoverDBCatalogs = function(restrictions, properties, cb) {
   this.discover('DBSCHEMA_CATALOGS',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverMDCubes = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_CUBES',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverMDMeasures = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_MEASURES',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverMDMeasureGroups = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_MEASUREGROUPS',restrictions, properties, cb);
+};
+
+
+XMLAClient.prototype.discoverMDKPIs = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_KPIS',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverMDDimensions = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_DIMENSIONS',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverMDHierarchies = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_HIERARCHIES',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverMDLevels = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_LEVELS',restrictions, properties, cb);
+};
+
+XMLAClient.prototype.discoverMDMeasureGroupDimensions = function(restrictions, properties, cb) {
+  this.discover('MDSCHEMA_MEASUREGROUP_DIMENSIONS',restrictions, properties, cb);
 };

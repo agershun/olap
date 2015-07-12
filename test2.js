@@ -9,6 +9,28 @@ var srv2 = olap.server({port:5000, passthru:'http://sampledata.infragistics.com/
 
 var cli1 = xmla.client('http://localhost:3000/xmla');
 var cli2 = xmla.client('http://localhost:4000/xmla');
+var cli3 = xmla.client('http://sampledata.infragistics.com/olap/msmdpump.dll');
+
+//cli3.discoverDBCatalogs();
+
+
+cli3.discoverDBCatalogs(function(err,rs){ console.log('var columns =',rs.columns);
+	console.log('var rows = [', rs.rows[0],'];'); });
+
+/*
+
+http://jsfiddle.net/akoku0zg/
+
+DBSCHEMA_CATALOGS
+MDSCHEMA_CUBES
+MDSCHEMA_MEASURES
+MDSCHEMA_KPIS
+MDSCHEMA_DIMENSIONS
+MDSCHEMA_HIERARCHIES
+MDSCHEMA_LEVELS
+MDSCHEMA_MEASUREGROUP_DIMENSIONS
+
+*/
 
 
 // cli2.execute('SELECT {[Measures].[qty]} ON COLUMNS FROM deptqty',{Catalog:'FoodMart'},function(err,rs){
