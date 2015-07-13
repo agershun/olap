@@ -6,6 +6,8 @@ var textBody = require('body');
 var xmlparse = require('./xmlparse.js').xmlparse;
 var fs = require('fs');
 
+var debug = false;
+
 function extend(dest, src) {
   for(var p in src) {
     if(src.hasOwnProperty(p)) {
@@ -57,6 +59,8 @@ var OLAPServer = function(params) {
   					res.end('');
   					return;
 				}
+
+        if(debug) console.log(body);
   				var data = xmlparse(body);
 //console.log(45,data.root);
   				if(!data.root) {
@@ -216,9 +220,9 @@ function soapPack(rs,responseType){
 				}
 			};
 			s += '</row>';
-      s += '</root>';
 
 		}
+    s += '</root>';
 
 	} else if (rs.cells) {
     s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:mddataset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:EX="urn:schemas-microsoft-com:xml-analysis:exception">';
@@ -287,7 +291,7 @@ function soapPack(rs,responseType){
 	s += '</cxmla:'+responseType+'>';
 	s += '</SOAP-ENV:Body>';
 	s += '</SOAP-ENV:Envelope>';
-//	console.log(s);
+  if(debug)	console.log(s);
 	return s;
 }
 
@@ -319,6 +323,8 @@ function CORS(req, res) {
 
 
 OLAPServer.prototype.discover = function(requestType,restrictions,properties,cb){
+  if(debug) console.log('discover:',requestType);
+
 	if(this.passthru) {
 		this.client.discover(requestType,restrictions,properties,cb);
 	} else {
@@ -337,6 +343,7 @@ OLAPServer.prototype.discover = function(requestType,restrictions,properties,cb)
 };
 
 OLAPServer.prototype.execute = function(command,properties,parameters,cb){
+  if(debug) console.log('execute:',command, properties);
 	var self = this;
 	if(self.passthru) {
 		self.client.execute(command,properties,parameters,cb);
@@ -354,7 +361,7 @@ OLAPServer.prototype.execute = function(command,properties,parameters,cb){
 
 OLAPServer.prototype.MDXParse = function(command,cb) {
 	// Here we will have a parser
-	cb(undefined,{});
+	cb(undefined,command);
 };
 
 OLAPServer.prototype.MDXExecute = function(ast,properties,parameters,cb){
@@ -364,6 +371,12 @@ OLAPServer.prototype.MDXExecute = function(ast,properties,parameters,cb){
 		var cells = [{Value:'48',FmtValue:'48'}];
 		cb(undefined,{cube:cube,axis:axis,cells:cells});
 	} else {
+
+    if(!ast) {
+      cb(undefined,{columns:[],rows:[]});
+      return;
+    }
+
 		var columns =
 	   [ { minOccurs: '0',
 	       name: '_x005b_Measures_x005d_._x005b_qty_x005d_',
