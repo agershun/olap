@@ -5,6 +5,7 @@ var url = require('url');
 var textBody = require('body');
 var xmlparse = require('./xmlparse.js').xmlparse;
 var fs = require('fs');
+var mdxparser = require('./mdxparser.js').parser;
 
 var debug = false;
 
@@ -360,8 +361,9 @@ OLAPServer.prototype.execute = function(command,properties,parameters,cb){
 };
 
 OLAPServer.prototype.MDXParse = function(command,cb) {
+  console.log(mdxparser.parse(command));
 	// Here we will have a parser
-	cb(undefined,command);
+	cb(undefined,mdxparser.parse(command));
 };
 
 OLAPServer.prototype.MDXExecute = function(ast,properties,parameters,cb){

@@ -85,28 +85,28 @@
 
 Literal
 	: LITERAL
-		{  }
+		{  $$ = $1; }
 	| BRALITERAL
-		{  }
-	| AMPERSAND BRALITERAL
-		{  }
+		{  $$ = $1.substr(1,$1.length-2); }
 	;
 
 main
-	: MdxStatement
-	;
-
-MdxStatement
-	: Select	
-	;
-
-WithClause
-	: WITH 
+	: Select EOF
+		{ 
+			$$ = $1; 
+			console.log($$); 
+			return $$; 
+		}	
 	;
 
 Select
 /*	: WithClause? SelectClause FromClause HavingClause? WhereClause?
 */	: SELECT OnList FROM Literal 
+		{ $$ = {select: $2, from: $4}; }	
+	;
+
+WithClause
+	: WITH 
 	;
 
 /*
@@ -117,64 +117,89 @@ SelectClause
 
 OnList
 	: OnList COMMA OnClause
+		{ $$ = $1; $$.push($3); }
 	| OnClause
+		{ $$ = [$1]; }
 	;
 
 OnClause
-	: SetClause ON ROWS
-	| SetClause ON COLUMNS
+	: SetClause ON COLUMNS
+		{ $$ = {axis:1, set: $1}; }
+	| SetClause ON ROWS
+		{ $$ = {axis:2, set: $1}; }
 	| SetClause ON PAGES
+		{ $$ = {axis:3, set: $1}; }
 	| SetClause ON SECTIONS
+		{ $$ = {axis:4, set: $1}; }
 	| SetClause ON CHAPTERS
+		{ $$ = {axis:5, set: $1}; }
 	| SetClause ON AXIS LPAR NUMBER RPAR
+		{ $$ = {axis:+$5, set: $1}; }
 	| SetClause ON NUMBER
+		{ $$ = {axis:+$3, set: $1}; }
 	;
 
 SetClause
 	: Set
+		{ $$ = $1; }
 	| NON EMPTY Set
+		{ $$ = {nonempty:true, set:$3}; }
 	;
 
 Set
 	: LCUR ExprList RCUR
+		{ $$ = $2; }
 	| Literal
+		{ $$ = $1; }
+	| AMPERSAND Literal
+		{  $$ = {ampersand: $2}; }
 	;
 
+/*
 FromClause
 	: FROM Literal
+		{ $$ = $2; }
 	;
-
+*/
+/*
 HavingClause
 	: HAVING Expression
 	;
-
+*/
 Expression
 	: Set
+		{ $$ = {set:$1}; }
 	| Set Op Set
+		{ $$ = {op:$2,left:$1,right:$3}; }
  	| LPAR Expression RPAR
+ 		{ $$ = $2; }
  	| Literal LPAR ExprList RPAR
+ 		{ $$ = {funcid:$1,args:$3}; }
 	;
 
 ExprList
 	: ExprList COMMA Expression
+		{ $$ = $1; $$.push($3); }
 	| Expression
+		{ $$ = [$1]; }
 	;
 
 Op
-	: DOT
-	| STAR
-	| SLASH
-	| PLUS
-	| MINUS
-	| GT
-	| GE
-	| LT
-	| LE
-	| EQ
-	| NE
+	: DOT { $$ = '.'; }
+	| STAR  { $$ = '*'; }
+	| SLASH { $$ = '/'; }
+	| PLUS { $$ = '+'; }
+	| MINUS { $$ = '-'; }
+	| GT { $$ = '>'; }
+	| GE { $$ = '>='; }
+	| LT { $$ = '<'; }
+	| LE { $$ = '<='; }
+	| EQ { $$ = '='; }
+	| NE { $$ = '!='; }
 	;
 
 WhereClause
 	: WHERE Expression
+		{ $$ = $2; }
 	;
 
