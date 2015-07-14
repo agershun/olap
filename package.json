@@ -1,0 +1,51 @@
+{
+  "name": "olap",
+  "description": "Extensible embeddable JavaScript OLAP server",
+  "version": "0.0.1",
+  "author": "Andrey Gershun <agershun@gmail.com>",
+ "contributors": [{
+  "name": "Mathias Rangel Wulff",
+  }],
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "cd test && ../node_modules/.bin/mocha . --reporter dot"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-concat": "^2.5.2",
+    "gulp-shell": "^0.4.1",
+    "jison": "^0.4.15",
+    "mocha": "^2.2.5",
+    "uglifyjs": "^2.4.10"
+  },
+  "engines": [
+    "node"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/agershun/olap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/agershun/olap/issues"
+  },
+  "bin": {
+    "alasql": "./bin/olap.js"
+  },
+  "homepage": "https://github.com/agershun/olap",
+  "main": "dist/olap.js",
+  "keywords": [
+    "sql",
+    "OLAP",
+    "mdx",
+    "javascript",
+    "database",
+    "DBMS",
+    "data",
+    "query"
+  ],
+  "license": "MIT"
+}

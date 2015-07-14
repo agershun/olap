@@ -2,9 +2,14 @@
 
 JavaScript Online Analytical Processing server and library for browser and Node.js
 
-(c) 2015 Andrey Gershun (agershun@gmail.com)
+(c) 2015 [Andrey Gershun](agershun@gmail.com), [Mathias Rangel Wulff](https://twitter.com/rangelwulff)
 
 **Work in progress!**
+
+
+
+
+
 
 ## Express OLAP server
 

@@ -1,0 +1,15 @@
+
+*.xlsx binary
+*.xls binary
+
+alasql.js binary merge=ours
+alasql.js.map binary merge=ours
+alasql.min.js binary merge=ours
+
+# absolute paths are ok, as are globs
+#/**/postinst* text eol=lf
+
+# paths that don't start with / are relative to the .gitattributes folder
+#relative/path/*.txt text eol=lf
+
+
