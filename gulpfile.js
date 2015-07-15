@@ -1,23 +1,25 @@
 //
 // gulpfile.js
-// Gulp for Alasql
-// Дата: 06.08.2014
-// (c) 2014-2015, Andrey Gershun
+// Gulp for OLAP.js
+// Дата: 15.07.2015
+// (c) 2015, Andrey Gershun
 //
 
 var closure = false;
 
 var gulp = require('gulp');
 module.exports = gulp;
-//var connect = require('gulp-connect');
-//var livereload = require('gulp-livereload');
-//var changed = require('gulp-changed');
-//var jison = require('gulp-jison');
-//var concat = require('gulp-concat-sourcemap');
 var concat = require('gulp-concat');
-//var uglify = require('gulp-uglify');
-//var jisonLex = require('gulp-jison-lex');
 var shell = require('gulp-shell');
+
+gulp.task('alaolap', function () {
+  return gulp.src([
+    './src/alaolap.js', 
+    ])
+    .pipe(gulp.dest('./bin'))
+});
+
+
 
 
 gulp.task('js-merge-worker', function () {

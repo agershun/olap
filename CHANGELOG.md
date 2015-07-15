@@ -6,4 +6,4 @@
 * First version of OLAP.js
 * MDX parser to MDX AST
 * package.json, gulfile.js, and other service files wer added
-
+* development npm packages installed
