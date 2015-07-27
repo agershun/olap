@@ -6,6 +6,7 @@ var textBody = require('body');
 var xmlparse = require('./xmlparse.js').xmlparse;
 var fs = require('fs');
 var mdxparser = require('./mdxparser.js').parser;
+var olapdemo = require('./olapdemo.js').olapdemo;
 
 var debug = false;
 
@@ -228,7 +229,7 @@ function soapPack(rs,responseType){
 	} else if (rs.cells) {
     s += '<root xmlns="urn:schemas-microsoft-com:xml-analysis:mddataset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:EX="urn:schemas-microsoft-com:xml-analysis:exception">';
 
-		s += fs.readFileSync('olap/md.xml').toString();
+		s += fs.readFileSync('olap/mddataset.xml').toString();
 
 		s += '<OlapInfo>';
 		s += '<CubeInfo><Cube><CubeName>'+rs.cube+'</CubeName></Cube></CubeInfo>';
@@ -420,17 +421,12 @@ OLAPServer.prototype.discoverDataSources = function(restrictions,properties,cb) 
        type: 'xsd:string' } 
    ];
 
-   var rows =    
-   [ { DataSourceName: 'ParmesanoDS',
-       DataSourceDescription: 'Parmesano Data Source',
-       URL: 'http://localhost:'+this.port+this.path,
-       DataSourceInfo: 'Parmesano Data Source Info',
-       ProviderName: 'olap.js',
-       ProviderType: ["MDX"],
-       AuthenticationMode: 'Unauthenticated' } 
-    ];
+   // Get the list
+    var rows = Object.keys(this.datasources).map(function(dsn){
+      return seff.datasources[dsn];
+    });
 
-    cb(undefined,{columns:columns,rows:rows});
+    cb(undefined,{format:'Tabular',columns:columns,rows:rows});
 };
 
 OLAPServer.prototype.discoverDBCatalogs = function(restrictions,properties,cb) {

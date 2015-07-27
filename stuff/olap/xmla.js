@@ -656,6 +656,7 @@ function rsparse (data,cb) {
 }
 
 XMLAClient.prototype.discoverDataSources = function(restrictions, properties, cb) {
+  console.log(659);
   this.discover('DISCOVER_DATASOURCES',restrictions, properties, cb);
 };
 

@@ -3,7 +3,7 @@
 */
 
 // Require block
-var olap = require('./../dist/olap.js');
+var olap = require('./../src/olap.js');
 
 // Create and run the server
 var srv = olap.server(3000);

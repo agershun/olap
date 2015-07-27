@@ -430,8 +430,24 @@ OLAPServer.prototype.discoverDataSources = function(restrictions,properties,cb) 
        AuthenticationMode: 'Unauthenticated' } 
     ];
 
+
+    
+
     cb(undefined,{columns:columns,rows:rows});
 };
+
+OLAPServer.prototype.discoverDBSchemes = function(restrictions,properties,cb) {
+  var columns = 
+   [    ];
+
+   var rows =    
+   [    ];
+
+    cb(undefined,{columns:columns,rows:rows});
+};
+
+
+
 
 OLAPServer.prototype.discoverDBCatalogs = function(restrictions,properties,cb) {
 	var columns =  [ 
